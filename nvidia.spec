@@ -1,9 +1,24 @@
-%define debug_package %{nil}
-%bcond_with kernel_rc
+%global debug_package %{nil}
+%global version_major 515
+%global version_minor 65
+%global version_patch 01
+%global _dracut_conf_d  %{_prefix}/lib/dracut/dracut.conf.d
+%global _modprobe_d     %{_prefix}/lib/modprobe.d/
+%global kernel_source_dir %{_builddir}/linux-%{kver}
+%global nvidia_driver_dir %{_builddir}/NVIDIA-Linux-%{_arch}-%{version}
+%global open_dkms_name nvidia-open
+%global open_kmod_source NVIDIA-kernel-module-source
+%global dkms_name nvidia
+
+%global kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
 
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
-Version:	470.129.06
+%if %{version_patch}
+Version:	%{version_major}.%{version_minor}.%{version_patch}
+%else
+Version: %{version_major}.%{version_minor}
+%endif
 Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
@@ -11,13 +26,13 @@ Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux
 Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linux-aarch64-%{version}.run
 Source10:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
 Source11:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/modprobe-nvidia.conf
-Patch0:         nvidia-fix-linux-5.10.patch	
+#Patch0:         nvidia-fix-linux-5.10.patch
 Group:		Hardware
 License:	distributable
 # Just to be on the safe side, it may not be wise
 # to load clang-built modules into a gcc-built kernel
 BuildRequires:	gcc
-Requires:	%{name}-kernel-modules = %{EVRD}
+Requires:	%{name}-kmod = %{EVRD}
 Requires:	libglvnd-egl
 Requires:	egl-wayland
 Requires:	vulkan-loader
@@ -41,6 +56,14 @@ This package should only be used as a last resort.
 %package 32bit
 Summary:	Binary-only 32-bit driver for nvidia graphics chips
 
+Requires:	%{name} = %{version}
+
+Provides:   libGLdispatch0
+Provides:   libGL1
+Provides:   libEGL1
+Provides:   libGLESv2_2
+Provides:   libOpenGL0
+
 %description 32bit
 This is a 32-bit binary-only driver for nvidia graphics chips.
 
@@ -57,110 +80,131 @@ installation.
 This package should only be used as a last resort.
 %endif
 
-%package kernel-modules-desktop
+%package kmod
 %define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |tail -n1)
 %define kdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-desktop-devel |tail -n1)
 Summary:	Kernel modules needed by the binary-only nvidia driver
-Provides:	%{name}-kernel-modules = %{EVRD}
-Requires:	kernel-desktop = %{kversion}
+Provides:	%{name}-kmod = %{EVRD}
+Requires: %{name}-kmod-common = %{version}
+Requires:	kernel = %{kversion}
 #Conflicts:	kernel-desktop < %%{kversion}
-Conflicts:	kernel-desktop > %{kversion}
-#Conflicts:	%%{name}-kernel-modules < %%{kversion}
+Conflicts:	kernel > %{kversion}
+#Conflicts:	%%{name}-kmod < %%{kversion}
 Group:		Hardware
 Provides:	should-restart = system
 Requires(post,postun):	sed dracut grub2 kmod
 BuildRequires:	kernel-desktop-devel
 
-%description kernel-modules-desktop
+Obsoletes:	nvidia-current <= %{version}
+Obsoletes:	nvidia-kernel-modules-desktop <= %{version}
+Obsoletes:	nvidia-kernel-modules-server <= %{version}
+Obsoletes:	nvidia-kernel-modules-desktop-clang <= %{version}
+Obsoletes:	nvidia-kernel-modules-server-clang <= %{version}
+Obsoletes:	nvidia-kernel-modules-desktop-rc <= %{version}
+Obsoletes:	nvidia-kernel-modules-server-rc <= %{version}
+Obsoletes:	nvidia-kernel-modules-desktop-gcc <= %{version}
+Obsoletes:	nvidia-kernel-modules-server-gcc <= %{version}
+
+%description kmod
 Kernel modules needed by the binary-only nvidia driver
 
-%package kernel-modules-desktop-gcc
-%define ckversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-gcc-devel |tail -n1)
-%define gkdir %(rpm -q --qf '%%{VERSION}-desktop-gcc-%%{RELEASE}%%{DISTTAG}\\n' kernel-desktop-gcc-devel |tail -n1)
-Summary:	Kernel modules needed by the binary-only nvidia driver
-Provides:	%{name}-kernel-modules = %{EVRD}
-Requires:	kernel-desktop-gcc = %{kversion}
-#Conflicts:	kernel-desktop < %%{kversion}
-Conflicts:	kernel-desktop-gcc > %{kversion}
-#Conflicts:	%%{name}-kernel-modules < %%{kversion}
-Group:		Hardware
-Provides:	should-restart = system
-Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-desktop-gcc-devel
+# =======================================================================================#
+# dkms-nvidia - modified from https://github.com/NVIDIA/yum-packaging-dkms-nvidia
+# =======================================================================================#
 
-%description kernel-modules-desktop-gcc
-Kernel modules needed by the binary-only nvidia driver
+%package dkms-kmod
+License:        NVIDIA License
+Summary:        NVIDIA display driver kernel module. **This is an unsupported proprietary driver. Use with caution!
+URL:            http://www.nvidia.com/object/unix.html
 
-%package kernel-modules-server
-%define skversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-server-devel |tail -n1)
-%define skdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-server-devel |tail -n1)
-Summary:	Kernel modules needed by the binary-only nvidia driver
-Provides:	%{name}-kernel-modules = %{EVRD}
-Requires:	kernel-server = %{skversion}
-Conflicts:	kernel-server < %{skversion}
-#Conflicts:	kernel-server > %%{skversion}
-Conflicts:	%{name}-kernel-modules < %{skversion}
-Group:		Hardware
-Provides:	should-restart = system
-Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-server-devel
+# Package is not noarch as it contains pre-compiled binary code
+ExclusiveArch:  %{x86_64} ppc64le %{aarch64}
+Source12:   dkms-%{dkms_name}.conf
 
-%description kernel-modules-server
-Kernel modules needed by the binary-only nvidia driver
+BuildRequires:  sed
 
-%package kernel-modules-server-gcc
-%define cskversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-server-gcc-devel |tail -n1)
-%define gskdir %(rpm -q --qf '%%{VERSION}-desktop-gcc-%%{RELEASE}%%{DISTTAG}\\n' kernel-server-gcc-devel |tail -n1)
-Summary:	Kernel modules needed by the binary-only nvidia driver
-Provides:	%{name}-kernel-modules = %{EVRD}
-Requires:	kernel-server-gcc = %{kversion}
-#Conflicts:	kernel-desktop < %%{kversion}
-Conflicts:	kernel-server-gcc > %{kversion}
-#Conflicts:	%%{name}-kernel-modules < %%{kversion}
-Group:		Hardware
-Provides:	should-restart = system
-Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-server-gcc-devel
+Provides:       %{name}-kmod = %{version}
+Requires:       %{name}-kmod-common = %{version}
+Requires:       %{name}-kmod-headers = %{version}
+Requires:       dkms
 
-%description kernel-modules-server-gcc
-Kernel modules needed by the binary-only nvidia driver
+Obsoletes:	nvidia-kernel-modules-desktop <= %{version}
+Obsoletes:	nvidia-kernel-modules-server <= %{version}
+Obsoletes:	nvidia-kernel-modules-desktop-clang <= %{version}
+Obsoletes:	nvidia-kernel-modules-server-clang <= %{version}
+Obsoletes:	nvidia-kernel-modules-desktop-rc <= %{version}
+Obsoletes:	nvidia-kernel-modules-server-rc <= %{version}
+Obsoletes:	nvidia-kernel-modules-desktop-gcc <= %{version}
+Obsoletes:	nvidia-kernel-modules-server-gcc <= %{version}
 
-%if %{with kernel_rc}
-%package kernel-modules-rc-desktop
-%define rkversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-rc-desktop-devel |tail -n1)
-%define rkdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-rc-desktop-devel |tail -n1)
-Summary:	Kernel modules needed by the binary-only nvidia driver
-Provides:	%{name}-kernel-modules = %{EVRD}
-Requires:	kernel-rc-desktop = %{rkversion}
-Conflicts:	kernel-rc-desktop < %{rkversion}
-Conflicts:	kernel-rc-desktop > %{rkversion}
-Group:		Hardware
-Provides:	should-restart = system
-Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-rc-desktop-devel
+%description dkms-kmod
+This package provides the proprietary Nvidia kernel driver modules.
+The modules are rebuilt through the DKMS system when a new kernel or modules
+become available.
 
-%description kernel-modules-rc-desktop
-Kernel modules needed by the binary-only nvidia driver
+# =======================================================================================#
+# dkms-open-nvidia - modified from https://github.com/NVIDIA/yum-packaging-dkms-nvidia
+# =======================================================================================#
 
-%package kernel-modules-rc-server
-%define rskversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-rc-server-devel |tail -n1)
-%define rskdir %(rpm -q --qf '%%{VERSION}-server-%%{RELEASE}%%{DISTTAG}\\n' kernel-rc-server-devel |tail -n1)
-Summary:	Kernel modules needed by the binary-only nvidia driver
-Provides:	%{name}-kernel-modules = %{EVRD}
-Requires:	kernel-rc-server = %{rskversion}
-Conflicts:	kernel-rc-server < %{rskversion}
-Conflicts:	kernel-rc-server > %{rskversion}
-Group:		Hardware
-Provides:	should-restart = system
-Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-rc-server-devel
+%package kmod-%{open_dkms_name}-dkms
 
-%description kernel-modules-rc-server
-Kernel modules needed by the binary-only nvidia driver
-%endif
+Summary:        NVIDIA driver open kernel module flavor
+License: 			NVIDIA and GPL-2
+BuildRequires:  sed
+
+Conflicts:      kmod-nvidia-latest-dkms
+Provides:       %{name}-kmod = %{version}
+Requires:       %{name}-kmod-common = %{version}
+Requires:       dkms
+
+%description kmod-%{open_dkms_name}-dkms
+This package provides the open-source Nvidia kernel driver modules.
+The modules are rebuilt through the DKMS system when a new kernel or modules
+become available.
+
+%package -n nvidia-kmod-source
+Summary:        NVIDIA open kernel module source files
+AutoReq:        0
+Conflicts:      kmod-nvidia-latest-dkms
+
+%description -n nvidia-kmod-source
+NVIDIA kernel module source files for compiling open flavor of nvidia.o and nvidia-modeset.o kernel modules.
+
+%package kmod-headers
+Summary:        NVIDIA header files for precompiled streams
+AutoReq:        0
+Conflicts:      kmod-nvidia-latest-dkms
+
+%description kmod-headers
+NVIDIA header files for precompiled streams
+
+# =======================================================================================#
+# nvidia-kmod-common - modified from https://github.com/NVIDIA/yum-packaging-nvidia-kmod-common
+# =======================================================================================#
+
+%package kmod-common
+Summary:        Common file for NVIDIA's proprietary driver kernel modules
+License:        NVIDIA Licensefile:///home/nreist/Development/Source/Repos/nvidia-legacy/nvidia-legacy.spec
+URL:            http://www.nvidia.com/object/unix.html
+
+BuildArch:      noarch
+Source4:	60-nvidia.rules
+Source6:	99-nvidia.conf
+
+BuildRequires:  systemd-rpm-macros
+
+Requires:       %{name}-kmod = %{version}
+Provides:       %{name}-kmod-common = %{version}
+Requires:       %{name} = %{version}
+Obsoletes:      cuda-nvidia-kmod-common <= %{version}
+
+%description kmod-common
+This package provides the common files required by all NVIDIA kernel module
+package variants.
 
 %prep
-%setup -T -c %{name}-%{version}
+rm -rf %{nvidia_driver_dir}
+rm -rf %{kernel_source_dir}
 %ifarch %{x86_64}
 sh %{S:0} --extract-only
 %else
@@ -169,57 +213,63 @@ sh %{S:1} --extract-only
 %endif
 %endif
 #%%patch0 -p1
+cp -r /usr/src/linux-%{kdir} %{kernel_source_dir}
+
+# nvidia-settings
+# Install desktop file
+sed -i 's:__PIXMAP_PATH__:%{_datadir}/pixmaps:g' %{nvidia_driver_dir}/nvidia-settings.desktop
+sed -i 's:__UTILS_PATH__:%{_bindir}:g' %{nvidia_driver_dir}/nvidia-settings.desktop
+mkdir -p %{buildroot}%{_datadir}/{applications,pixmaps}
+desktop-file-install --dir %{buildroot}%{_datadir}/applications/ %{nvidia_driver_dir}/nvidia-settings.desktop
+cp %{nvidia_driver_dir}/nvidia-settings.png %{buildroot}%{_datadir}/pixmaps/
+
+# dkms kmod - closed and open
+cp -f %{SOURCE12} %{nvidia_driver_dir}/kernel/dkms.conf
+cp -f %{SOURCE12} %{nvidia_driver_dir}/kernel-open/dkms.conf
+sed -i -e 's/__VERSION_STRING/%{version}/g' %{nvidia_driver_dir}/kernel/dkms.conf
+sed -i -e 's/__VERSION_STRING/%{version}/g' %{nvidia_driver_dir}/kernel-open/dkms.conf
+cp -r %{nvidia_driver_dir}/kernel-open %{_builddir}/%{open_kmod_source}
 
 %build
-%ifarch %{x86_64}
-cd NVIDIA-Linux-x86_64-%{version}
-%else
-%ifarch %{aarch64}
-cd NVIDIA-Linux-aarch64-%{version}
-%endif
-%endif
-
-cp -a kernel kernel-server
-cp -a kernel kernel-gcc
-cp -a kernel kernel-server-gcc
-
-%if %{with kernel_rc}
-cp -a kernel kernel-rc
-cp -a kernel kernel-rc-server
-%endif
+#cd NVIDIA-Linux-%%{_arch}-%%{version}
 
 # The IGNORE_CC_MISMATCH flags below are needed because for some
 # reason, the kernel appends the LLD version to clang kernels while
 # nvidia does not.
 
-cd kernel
-make SYSSRC=%{_prefix}/src/linux-%{kdir} CC=%{_bindir}/clang LLVM=1 IGNORE_CC_MISMATCH=1 V=1
+# kmod
+cd %{nvidia_driver_dir}/kernel
 
-cd ../kernel-gcc
-make SYSSRC=%{_prefix}/src/linux-%{gkdir} CC=%{_bindir}/gcc V=1
+# A proper kernel module build uses /lib/modules/KVER/{source,build} respectively,
+# but that creates a dependency on the 'kernel' package since those directories are
+# not provided by kernel-devel. Both /source and /build in the mentioned directory
+# just link to the sources directory in /usr/src however, which ddiskit defines
+# as kmod_kernel_source.
+KERNEL_SOURCES=%{kernel_source_dir}
+KERNEL_OUTPUT=%{kernel_source_dir}
 
-cd ../kernel-server
-make SYSSRC=%{_prefix}/src/linux-%{skdir} CC=%{_bindir}/clang IGNORE_CC_MISMATCH=1 V=1
+# These could affect the linking so we unset them both there and in %%post
+unset LD_RUN_PATH
+unset LD_LIBRARY_PATH
 
-cd ../kernel-server-gcc
-make SYSSRC=%{_prefix}/src/linux-%{gskdir} CC=%{_bindir}/gcc V=1
+#
+# Compile kernel modules
+#
 
-%if %{with kernel_rc}
-cd ../kernel-rc
-make SYSSRC=%{_prefix}/src/linux-%{rkdir} CC=%{_bindir}/clang IGNORE_CC_MISMATCH=1 V=1
-
-cd ../kernel-rc-server
-make SYSSRC=%{_prefix}/src/linux-%{rskdir} CC=%{_bindir}/gcc V=1
-%endif
+%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} IGNORE_CC_MISMATCH=1
 
 %install
-%ifarch %{x86_64}
-cd NVIDIA-Linux-x86_64-%{version}
-%else
-%ifarch %{aarch64}
-cd NVIDIA-Linux-aarch64-%{version}
-%endif
-%endif
+# dkms kmod open
+# Create empty tree
+mkdir -p %{buildroot}%{_usrsrc}/%{open_dkms_name}-%{version}/src
+cp -fr %{nvidia_driver_dir}/kernel-open/* %{buildroot}%{_usrsrc}/%{open_dkms_name}-%{version}/
+
+# Add symlink
+cd %{buildroot}%{_usrsrc}/%{open_dkms_name}-%{version}/src/ &&
+ln -sf ../../%{open_dkms_name}-%{version}/ kernel-open &&
+cd - >/dev/null
+cd %{nvidia_driver_dir}
+# end dkms kmod open
 
 inst() {
 	install -m 644 -D $(basename $1) %{buildroot}"$1"
@@ -313,8 +363,9 @@ instx %{_libdir}/libnvidia-gtk2.so.%{version}
 instx %{_libdir}/libnvidia-gtk3.so.%{version}
 
 # IFR
-instx %{_libdir}/libnvidia-ifr.so.%{version}
-sl nvidia-ifr 1
+# not found in 515
+#instx %%{_libdir}/libnvidia-ifr.so.%%{version}
+#sl nvidia-ifr 1
 
 # VDPAU
 instx %{_libdir}/vdpau/libvdpau_nvidia.so.%{version}
@@ -331,6 +382,8 @@ instx %{_bindir}/nvidia-smi
 inst %{_mandir}/man1/nvidia-smi.1
 instx %{_bindir}/nvidia-settings       
 inst %{_mandir}/man1/nvidia-settings.1
+inst %{_datadir}/applications/nvidia-settings.desktop
+inst %{_datadir}/pixmaps/nvidia-settings.png
 
 # glvk
 instx %{_libdir}/libnvidia-glvkspirv.so.%{version}
@@ -341,7 +394,14 @@ inst %{_datadir}/nvidia/nvidia-application-profiles-%{version}-key-documentation
 
 # Configs
 install -D -m 644 %{S:10} %{buildroot}%{_sysconfdir}/X11/xorg.conf.d/15-nvidia.conf
-install -D -m 644 %{S:11} %{buildroot}%{_sysconfdir}/modprobe.d/nvidia.conf
+
+# license and doc files
+mkdir -p %{buildroot}%{_docdir}/%{name}
+mkdir -p %{buildroot}%{_datadir}/licenses/%{name}
+cp %{nvidia_driver_dir}/LICENSE %{buildroot}%{_datadir}/licenses/%{name}
+cp %{nvidia_driver_dir}/NVIDIA_Changelog %{buildroot}%{_docdir}/%{name}
+cp %{nvidia_driver_dir}/README.txt %{buildroot}%{_docdir}/%{name}
+cp -r %{nvidia_driver_dir}/html %{buildroot}%{_docdir}/%{name}
 
 # Kernel modules
 cd kernel
@@ -350,25 +410,71 @@ inst /lib/modules/%{kdir}/kernel/drivers/video/nvidia-drm.ko
 inst /lib/modules/%{kdir}/kernel/drivers/video/nvidia-modeset.ko
 inst /lib/modules/%{kdir}/kernel/drivers/video/nvidia-uvm.ko
 
-cd ../kernel-gcc
-inst /lib/modules/%{gkdir}/kernel/drivers/video/nvidia.ko
-inst /lib/modules/%{gkdir}/kernel/drivers/video/nvidia-drm.ko
-inst /lib/modules/%{gkdir}/kernel/drivers/video/nvidia-modeset.ko
-inst /lib/modules/%{gkdir}/kernel/drivers/video/nvidia-uvm.ko
+# dkms-kmod
+# Create empty tree
+mkdir -p %{buildroot}%{_usrsrc}/%{dkms_name}-%{version}/
+cp -fr %{nvidia_driver_dir}/kernel/* %{buildroot}%{_usrsrc}/%{dkms_name}-%{version}/
 
-cd ../kernel-server
-inst /lib/modules/%{skdir}/kernel/drivers/video/nvidia.ko
-inst /lib/modules/%{skdir}/kernel/drivers/video/nvidia-drm.ko
-inst /lib/modules/%{skdir}/kernel/drivers/video/nvidia-modeset.ko
-inst /lib/modules/%{skdir}/kernel/drivers/video/nvidia-uvm.ko
+mkdir -p %{buildroot}%{_udevrulesdir}
+mkdir -p %{buildroot}%{_modprobe_d}/
+mkdir -p %{buildroot}%{_dracut_conf_d}/
+mkdir -p %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}%{_presetdir}
 
-cd ../kernel-server-gcc
-inst /lib/modules/%{gskdir}/kernel/drivers/video/nvidia.ko
-inst /lib/modules/%{gskdir}/kernel/drivers/video/nvidia-drm.ko
-inst /lib/modules/%{gskdir}/kernel/drivers/video/nvidia-modeset.ko
-inst /lib/modules/%{gskdir}/kernel/drivers/video/nvidia-uvm.ko
+# Blacklist nouveau and load nvidia-uvm:
+install -p -m 0644 %{SOURCE11} %{buildroot}%{_modprobe_d}/
+
+# Avoid Nvidia modules getting in the initrd:
+install -p -m 0644 %{SOURCE6} %{buildroot}%{_dracut_conf_d}/
+
+# UDev rules:
+# https://github.com/NVIDIA/nvidia-modprobe/blob/master/modprobe-utils/nvidia-modprobe-utils.h#L33-L46
+# https://github.com/negativo17/nvidia-driver/issues/27
+install -p -m 644 %{SOURCE4} %{buildroot}%{_udevrulesdir}
+
+
+%post kmod-common
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="rd.driver.blacklist=nouveau /' %{_sysconfdir}/default/grub
+/sbin/depmod -a
+/usr/bin/dracut -f
+%{_sbindir}/update-grub2
+
+%postun kmod-common
+sed -i 's/rd.driver.blacklist=nouveau //g' %{_sysconfdir}/default/grub
+/sbin/depmod -a
+/usr/bin/dracut -f
+%{_sbindir}/update-grub2
+
+%files kmod-common
+%{_dracut_conf_d}/99-nvidia.conf
+%{_modprobe_d}/modprobe-nvidia.conf
+%{_udevrulesdir}/60-nvidia.rules
+
+%post dkms-kmod
+dkms add -m %{dkms_name}-v %{version} || :
+# Rebuild and make available for the currently running kernel
+dkms build -m %{dkms_name} -v %{version} || :
+dkms install -m %{dkms_name} -v %{version} --force || :
+
+%preun dkms-kmod
+# Remove all versions from DKMS registry
+dkms remove -m %{dkms_name} -v %{version} --all || :
+
+%post kmod-%{open_dkms_name}-dkms
+dkms add -m %{open_dkms_name} -v %{version} -q || :
+# Rebuild and make available for the currently running kernel
+dkms build -m %{open_dkms_name} -v %{version} -q || :
+dkms install -m %{open_dkms_name} -v %{version} -q --force || :
+
+%preun kmod-%{open_dkms_name}-dkms
+# Remove all versions from DKMS registry
+dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 
 %files
+%{_datadir}/licenses/%{name}/LICENSE
+%{_docdir}/%{name}/NVIDIA_Changelog
+%{_docdir}/%{name}/README.txt
+%{_docdir}/%{name}/html
 %{_libdir}/xorg/modules/drivers/nvidia_drv.so
 %{_datadir}/vulkan/icd.d/nvidia_icd.json
 %{_libdir}/libnvidia-glcore.so*
@@ -394,18 +500,20 @@ inst /lib/modules/%{gskdir}/kernel/drivers/video/nvidia-uvm.ko
 %{_libdir}/libnvidia-fbc.so*
 %{_libdir}/libnvidia-gtk2.so*
 %{_libdir}/libnvidia-gtk3.so*
-%{_libdir}/libnvidia-ifr.so*
+# not found in 515
+#%%{_libdir}/libnvidia-ifr.so*
 %{_libdir}/vdpau/libvdpau_nvidia.so*
 %{_bindir}/nvidia-bug-report.sh
 %{_bindir}/nvidia-smi
 %{_mandir}/man1/nvidia-smi.1*
 %{_bindir}/nvidia-settings
 %{_mandir}/man1/nvidia-settings.1*
+%{_datadir}/applications/nvidia-settings.desktop
+%{_datadir}/pixmaps/nvidia-settings.png
 %{_libdir}/libnvidia-glvkspirv.so*
 %{_datadir}/nvidia/nvidia-application-profiles-%{version}-rc
 %{_datadir}/nvidia/nvidia-application-profiles-%{version}-key-documentation
 %{_sysconfdir}/X11/xorg.conf.d/15-nvidia.conf
-%{_sysconfdir}/modprobe.d/nvidia.conf
 
 %ifarch %{x86_64}
 %files 32bit
@@ -426,99 +534,28 @@ inst /lib/modules/%{gskdir}/kernel/drivers/video/nvidia-uvm.ko
 %{_prefix}/lib/libnvidia-opencl.so*
 %{_prefix}/lib/libnvidia-encode.so*
 %{_prefix}/lib/libnvidia-fbc.so*
-%{_prefix}/lib/libnvidia-ifr.so*
+# not found in 515
+#%%{_prefix}/lib/libnvidia-ifr.so*
 %{_prefix}/lib/vdpau/libvdpau_nvidia.so*
 %{_prefix}/lib/libnvidia-glvkspirv.so*
 %endif
 
-%files kernel-modules-desktop
+%files dkms-kmod
+%{_usrsrc}/%{dkms_name}-%{version}
+
+%files kmod-%{open_dkms_name}-dkms
+%{_usrsrc}/%{open_dkms_name}-%{version}/common
+%{_usrsrc}/%{open_dkms_name}-%{version}/nvidia*
+%{_usrsrc}/%{open_dkms_name}-%{version}/Kbuild
+%{_usrsrc}/%{open_dkms_name}-%{version}/Makefile
+%{_usrsrc}/%{open_dkms_name}-%{version}/conftest.sh
+%{_usrsrc}/%{open_dkms_name}-%{version}/dkms.conf
+
+%files -n nvidia-kmod-source
+%{_usrsrc}/%{open_dkms_name}-%{version}/src
+
+%files kmod-headers
+%{_usrsrc}/%{dkms_name}-%{version}
+
+%files kmod
 /lib/modules/%{kdir}/kernel/drivers/video/*
-
-%post kernel-modules-desktop
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="rd.driver.blacklist=nouveau /' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{kdir}
-/usr/bin/dracut -f --kver %{kdir}
-%{_sbindir}/update-grub2
-
-%postun kernel-modules-desktop
-sed -i 's/rd.driver.blacklist=nouveau //g' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{kdir}
-/usr/bin/dracut -f --kver %{kdir}
-%{_sbindir}/update-grub2
-
-%files kernel-modules-desktop-gcc
-/lib/modules/%{gkdir}/kernel/drivers/video/*
-
-%post kernel-modules-desktop-gcc
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="rd.driver.blacklist=nouveau /' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{gkdir}
-/usr/bin/dracut -f --kver %{gkdir}
-%{_sbindir}/update-grub2
-
-%postun kernel-modules-desktop-gcc
-sed -i 's/rd.driver.blacklist=nouveau //g' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{gkdir}
-/usr/bin/dracut -f --kver %{gkdir}
-%{_sbindir}/update-grub2
-
-%files kernel-modules-server
-/lib/modules/%{skdir}/kernel/drivers/video/*
-
-%post kernel-modules-server
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="rd.driver.blacklist=nouveau /' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{skdir}
-/usr/bin/dracut -f --kver %{skdir}
-%{_sbindir}/update-grub2
-
-%postun kernel-modules-server
-sed -i 's/rd.driver.blacklist=nouveau //g' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{skdir}
-/usr/bin/dracut -f --kver %{skdir}
-%{_sbindir}/update-grub2
-
-%files kernel-modules-server-gcc
-/lib/modules/%{gskdir}/kernel/drivers/video/*
-
-%post kernel-modules-server-gcc
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="rd.driver.blacklist=nouveau /' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{gskdir}
-/usr/bin/dracut -f --kver %{gskdir}
-%{_sbindir}/update-grub2
-
-%postun kernel-modules-server-gcc
-sed -i 's/rd.driver.blacklist=nouveau //g' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{gskdir}
-/usr/bin/dracut -f --kver %{gskdir}
-%{_sbindir}/update-grub2
-
-%if %{with kernel_rc}
-%files kernel-modules-rc-desktop
-/lib/modules/%{rkdir}/kernel/drivers/video/*
-
-%post kernel-modules-rc-desktop
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="rd.driver.blacklist=nouveau /' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{rkdir}
-/usr/bin/dracut -f --kver %{rkdir}
-%{_sbindir}/update-grub2
-
-%postun kernel-modules-rc-desktop
-sed -i 's/rd.driver.blacklist=nouveau //g' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{rkdir}
-/usr/bin/dracut -f --kver %{rkdir}
-%{_sbindir}/update-grub2
-
-%files kernel-modules-rc-server
-/lib/modules/%{rskdir}/kernel/drivers/video/*
-
-%post kernel-modules-rc-server
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="rd.driver.blacklist=nouveau /' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{rkdir}
-/usr/bin/dracut -f --kver %{rskdir}
-%{_sbindir}/update-grub2
-
-%postun kernel-modules-rc-server
-sed -i 's/rd.driver.blacklist=nouveau //g' %{_sysconfdir}/default/grub
-/sbin/depmod -a %{rskdir}
-/usr/bin/dracut -f --kver %{rskdir}
-%{_sbindir}/update-grub2
-%endif
