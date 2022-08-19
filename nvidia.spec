@@ -347,7 +347,10 @@ inst %{_sysconfdir}/OpenCL/vendors/nvidia.icd
 instx %{_libdir}/libnvidia-cfg.so.%{version}
 sl nvidia-cfg 1
 
+%ifarch %{x86_64}
 instx %{_libdir}/libnvidia-compiler.so.%{version}
+%endif
+
 instx %{_libdir}/libnvidia-opencl.so.%{version}
 
 # Encode (what is this?)
@@ -360,7 +363,10 @@ sl nvidia-fbc 1
 
 # Yuck...
 instx %{_libdir}/libnvidia-gtk2.so.%{version}
+
+%ifarch %{x86_64}
 instx %{_libdir}/libnvidia-gtk3.so.%{version}
+%endif
 
 # IFR
 # not found in 515
@@ -494,12 +500,16 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-tls.so*
 %{_sysconfdir}/OpenCL/vendors/nvidia.icd
 %{_libdir}/libnvidia-cfg.so*
+%ifarch %{x86_64}
 %{_libdir}/libnvidia-compiler.so*
+%endif
 %{_libdir}/libnvidia-opencl.so*
 %{_libdir}/libnvidia-encode.so*
 %{_libdir}/libnvidia-fbc.so*
 %{_libdir}/libnvidia-gtk2.so*
+%ifarch %{x86_64}
 %{_libdir}/libnvidia-gtk3.so*
+%endif
 # not found in 515
 #%%{_libdir}/libnvidia-ifr.so*
 %{_libdir}/vdpau/libvdpau_nvidia.so*
