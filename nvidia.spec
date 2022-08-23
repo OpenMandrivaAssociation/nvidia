@@ -1,7 +1,4 @@
 %global debug_package %{nil}
-%global version_major 515
-%global version_minor 65
-%global version_patch 01
 %global _dracut_conf_d  %{_prefix}/lib/dracut/dracut.conf.d
 %global _modprobe_d     %{_prefix}/lib/modprobe.d/
 %global kernel_source_dir %{_builddir}/linux-%{kver}
@@ -12,13 +9,15 @@
 
 %global kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
 
+%ifarch %{x86_64}
+%global kernels desktop server desktop-gcc server-gcc rc-desktop rc-server rc-desktop-gcc rc-server-gcc
+%else
+%global kernels desktop server rc-desktop rc-server
+%endif
+
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
-%if %{version_patch}
-Version:	%{version_major}.%{version_minor}.%{version_patch}
-%else
-Version: %{version_major}.%{version_minor}
-%endif
+Version:	515.65.01
 Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
@@ -26,7 +25,7 @@ Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux
 Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linux-aarch64-%{version}.run
 Source10:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
 Source11:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/modprobe-nvidia.conf
-#Patch0:         nvidia-fix-linux-5.10.patch
+Patch0:         NaziVidia-kernel-6.0.patch
 Group:		Hardware
 License:	distributable
 # Just to be on the safe side, it may not be wise
@@ -79,6 +78,54 @@ installation.
 
 This package should only be used as a last resort.
 %endif
+
+%{expand:%(for i in %{kernels}; do
+	K=$(echo $i |sed -e 's,-,_,g')
+	echo "%%global kversion_$K $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1)"
+	echo "%%global kdir_$K $(rpm -q --qf %%{VERSION}-$i-%%{RELEASE}%%{DISTTAG} kernel-${i}-devel |tail -n1)"
+done)}
+%(
+for i in %{kernels}; do
+	K=$(echo $i |sed -e 's,-,_,g')
+	cat <<EOF
+%package kmod-$i
+Summary:	Kernel modules needed by the binary-only nvidia driver for kernel $i %%{kversion_$K}
+Release:	%{release}_$(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's,-,_,g;s, ,_,g')
+Provides:	%{name}-kmod = %{EVRD}
+Requires:	%{name}-kmod-common = %{EVRD}
+Requires:	kernel-$i = $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's, ,_,g;s,^package.*,1.0,')
+Conflicts:	kernel-$i > $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's, ,_,g;s,^package.*,1.0,')
+Group:		Hardware
+Provides:	should-restart = system
+Requires(post,postun):	sed dracut grub2 kmod
+BuildRequires:	kernel-$i-devel
+
+%description kmod-$i
+Kernel modules needed by the binary-only nvidia driver for kernel $i %%{kversion_$K}
+
+%files kmod-$i
+/lib/modules/%%{kdir_$K}/kernel/drivers/video/nvidia
+
+%package kmod-open-$i
+Summary:	Open kernel modules needed by the binary-only nvidia driver for kernel $i %%{kversion_$K}
+Release:	%{release}_$(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's,-,_,g;s, ,_,g')
+Provides:	%{name}-kmod = %{EVRD}
+Requires:	%{name}-kmod-common = %{EVRD}
+Requires:	kernel-$i = $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's, ,_,g;s,^package.*,1.0,')
+Conflicts:	kernel-$i > $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's, ,_,g;s,^package.*,1.0,')
+Group:		Hardware
+Provides:	should-restart = system
+Requires(post,postun):	sed dracut grub2 kmod
+BuildRequires:	kernel-$i-devel
+
+%description kmod-open-$i
+Open kernel modules needed by the binary-only nvidia driver for kernel $i %%{kversion_$K}
+
+%files kmod-open-$i
+/lib/modules/%%{kdir_$K}/kernel/drivers/video/nvidia-open
+EOF
+done
+)
 
 %package kmod
 %define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |tail -n1)
@@ -203,8 +250,7 @@ This package provides the common files required by all NVIDIA kernel module
 package variants.
 
 %prep
-rm -rf %{nvidia_driver_dir}
-rm -rf %{kernel_source_dir}
+rm -rf NV* linux* modules* *.list
 %ifarch %{x86_64}
 sh %{S:0} --extract-only
 %else
@@ -212,8 +258,9 @@ sh %{S:0} --extract-only
 sh %{S:1} --extract-only
 %endif
 %endif
-#%%patch0 -p1
-cp -r /usr/src/linux-%{kdir} %{kernel_source_dir}
+cd NV*
+%autopatch -p1
+cd ..
 
 # nvidia-settings
 # Install desktop file
@@ -238,30 +285,81 @@ cp -r %{nvidia_driver_dir}/kernel-open %{_builddir}/%{open_kmod_source}
 # nvidia does not.
 
 # kmod
-cd %{nvidia_driver_dir}/kernel
+for i in %{kernels}; do
+	K=$(echo $i |sed -e 's,-,_,g')
+	KD=$(rpm -q --qf "%%{VERSION}-$i-%%{RELEASE}%%{DISTTAG}\n" kernel-${i}-devel |tail -n1)
+	if echo $i |grep -q rc; then
+		KD=$(echo $KD |sed -e 's,-rc,,')
+	fi
+	# The IGNORE_CC_MISMATCH flags below are needed because for some
+	# reason, the kernel appends the LLD version to clang kernels while
+	# nvidia does not.
 
-# A proper kernel module build uses /lib/modules/KVER/{source,build} respectively,
-# but that creates a dependency on the 'kernel' package since those directories are
-# not provided by kernel-devel. Both /source and /build in the mentioned directory
-# just link to the sources directory in /usr/src however, which ddiskit defines
-# as kmod_kernel_source.
-KERNEL_SOURCES=%{kernel_source_dir}
-KERNEL_OUTPUT=%{kernel_source_dir}
+	# kmod
+	cd %{nvidia_driver_dir}/kernel
 
-# These could affect the linking so we unset them both there and in %%post
-unset LD_RUN_PATH
-unset LD_LIBRARY_PATH
+	cp -r /usr/src/linux-$KD %{kernel_source_dir}-$i
+	# A proper kernel module build uses /lib/modules/KVER/{source,build} respectively,
+	# but that creates a dependency on the 'kernel' package since those directories are
+	# not provided by kernel-devel. Both /source and /build in the mentioned directory
+	# just link to the sources directory in /usr/src however, which ddiskit defines
+	# as kmod_kernel_source.
+	KERNEL_SOURCES=%{kernel_source_dir}-$i
+	KERNEL_OUTPUT=%{kernel_source_dir}-$i
 
-#
-# Compile kernel modules
-#
+	# These could affect the linking so we unset them both there and in %%post
+	unset LD_RUN_PATH
+	unset LD_LIBRARY_PATH
 
-%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} IGNORE_CC_MISMATCH=1
+	#
+	# Compile kernel modules
+	#
+	if echo $i |grep -q gcc; then
+		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} CC=gcc CXX=g++
+	else
+		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} IGNORE_CC_MISMATCH=1
+	fi
+
+	mkdir ../../modules-$i
+	mv *.ko ../../modules-$i
+
+	cd ../kernel-open
+	cp -r /usr/src/linux-$KD %{kernel_source_dir}-$i
+	# A proper kernel module build uses /lib/modules/KVER/{source,build} respectively,
+	# but that creates a dependency on the 'kernel' package since those directories are
+	# not provided by kernel-devel. Both /source and /build in the mentioned directory
+	# just link to the sources directory in /usr/src however, which ddiskit defines
+	# as kmod_kernel_source.
+	KERNEL_SOURCES=%{kernel_source_dir}-$i
+	KERNEL_OUTPUT=%{kernel_source_dir}-$i
+
+	# These could affect the linking so we unset them both there and in %%post
+	unset LD_RUN_PATH
+	unset LD_LIBRARY_PATH
+
+	#
+	# Compile kernel modules
+	#
+	if echo $i |grep -q gcc; then
+		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} CC=gcc CXX=g++
+	else
+		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} IGNORE_CC_MISMATCH=1
+	fi
+
+	mkdir ../../modules-open-$i
+	mv *.ko ../../modules-open-$i
+done
 
 %install
 # dkms kmod open
 # Create empty tree
 mkdir -p %{buildroot}%{_usrsrc}/%{open_dkms_name}-%{version}/src
+rm -rf \
+	%{nvidia_driver_dir}/kernel-open/conftest \
+	%{nvidia_driver_dir}/kernel-open/conftest*.c \
+	%{nvidia_driver_dir}/kernel-open/modules.order \
+	%{nvidia_driver_dir}/kernel-open/nv_compiler.h \
+	%{nvidia_driver_dir}/kernel-open/Module.symvers
 cp -fr %{nvidia_driver_dir}/kernel-open/* %{buildroot}%{_usrsrc}/%{open_dkms_name}-%{version}/
 
 # Add symlink
@@ -410,11 +508,15 @@ cp %{nvidia_driver_dir}/README.txt %{buildroot}%{_docdir}/%{name}
 cp -r %{nvidia_driver_dir}/html %{buildroot}%{_docdir}/%{name}
 
 # Kernel modules
-cd kernel
-inst /lib/modules/%{kdir}/kernel/drivers/video/nvidia.ko
-inst /lib/modules/%{kdir}/kernel/drivers/video/nvidia-drm.ko
-inst /lib/modules/%{kdir}/kernel/drivers/video/nvidia-modeset.ko
-inst /lib/modules/%{kdir}/kernel/drivers/video/nvidia-uvm.ko
+for i in %{kernels}; do
+	KD=$(rpm -q --qf "%%{VERSION}-$i-%%{RELEASE}%%{DISTTAG}\n" kernel-${i}-devel |tail -n1)
+	if echo $i |grep -q rc; then
+		KD=$(echo $KD |sed -e 's,^rc-,,')
+	fi
+	mkdir -p %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open
+	mv ../modules-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia/
+	mv ../modules-open-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open/
+done
 
 # dkms-kmod
 # Create empty tree
@@ -566,6 +668,3 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 
 %files kmod-headers
 %{_usrsrc}/%{dkms_name}-%{version}
-
-%files kmod
-/lib/modules/%{kdir}/kernel/drivers/video/*
