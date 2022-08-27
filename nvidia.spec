@@ -32,6 +32,10 @@ License:	distributable
 # to load clang-built modules into a gcc-built kernel
 BuildRequires:	gcc
 Requires:	%{name}-kmod = %{EVRD}
+# Not really, the %{name}-kmod = %{EVRD} requirement is enough.
+# But we need to make sure dnf prefers the option most people
+# will want over something like dkms
+Requires:	%{name}-kmod-desktop = %{version}
 Requires:	libglvnd-egl
 Requires:	egl-wayland
 Requires:	vulkan-loader
