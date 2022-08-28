@@ -515,7 +515,7 @@ cp -r %{nvidia_driver_dir}/html %{buildroot}%{_docdir}/%{name}
 for i in %{kernels}; do
 	KD=$(rpm -q --qf "%%{VERSION}-$i-%%{RELEASE}%%{DISTTAG}\n" kernel-${i}-devel |tail -n1)
 	if echo $i |grep -q rc; then
-		KD=$(echo $KD |sed -e 's,^rc-,,')
+		KD=$(echo $KD |sed -e 's,rc-,,g')
 	fi
 	mkdir -p %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open
 	mv ../modules-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia/
