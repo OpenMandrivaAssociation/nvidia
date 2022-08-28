@@ -86,7 +86,7 @@ This package should only be used as a last resort.
 %{expand:%(for i in %{kernels}; do
 	K=$(echo $i |sed -e 's,-,_,g')
 	echo "%%global kversion_$K $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1)"
-	echo "%%global kdir_$K $(rpm -q --qf %%{VERSION}-$i-%%{RELEASE}%%{DISTTAG} kernel-${i}-devel |tail -n1)"
+	echo "%%global kdir_$K $(rpm -q --qf %%{VERSION}-$i-%%{RELEASE}%%{DISTTAG} kernel-${i}-devel |tail -n1 |sed -e 's,-rc,,')"
 done)}
 %(
 for i in %{kernels}; do
