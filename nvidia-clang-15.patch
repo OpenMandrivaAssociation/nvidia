@@ -6349,3 +6349,45 @@ diff -up NVIDIA-Linux-x86_64-515.65.01/kernel-open/nvidia-uvm/uvm_migrate.c.omv~
  {
      uvm_migrate_pageable_exit();
  }
+diff -up NVIDIA-Linux-aarch64-515.65.01/kernel/nvidia-uvm/uvm_migrate_pageable.c.omv~ NVIDIA-Linux-aarch64-515.65.01/kernel/nvidia-uvm/uvm_migrate_pageable.c
+--- NVIDIA-Linux-aarch64-515.65.01/kernel/nvidia-uvm/uvm_migrate_pageable.c.omv~	2022-09-05 01:11:01.465583188 +0100
++++ NVIDIA-Linux-aarch64-515.65.01/kernel/nvidia-uvm/uvm_migrate_pageable.c	2022-09-05 01:11:13.985596751 +0100
+@@ -1001,7 +1001,7 @@ NV_STATUS uvm_migrate_pageable(uvm_migra
+     return status;
+ }
+ 
+-NV_STATUS uvm_migrate_pageable_init()
++NV_STATUS uvm_migrate_pageable_init(void)
+ {
+     g_uvm_migrate_vma_state_cache = NV_KMEM_CACHE_CREATE("migrate_vma_state_t", migrate_vma_state_t);
+     if (!g_uvm_migrate_vma_state_cache)
+@@ -1010,7 +1010,7 @@ NV_STATUS uvm_migrate_pageable_init()
+     return NV_OK;
+ }
+ 
+-void uvm_migrate_pageable_exit()
++void uvm_migrate_pageable_exit(void)
+ {
+     kmem_cache_destroy_safe(&g_uvm_migrate_vma_state_cache);
+ }
+diff -up NVIDIA-Linux-aarch64-515.65.01/kernel-open/nvidia-uvm/uvm_migrate_pageable.c.omv~ NVIDIA-Linux-aarch64-515.65.01/kernel-open/nvidia-uvm/uvm_migrate_pageable.c
+--- NVIDIA-Linux-aarch64-515.65.01/kernel-open/nvidia-uvm/uvm_migrate_pageable.c.omv~	2022-09-05 01:17:57.456031672 +0100
++++ NVIDIA-Linux-aarch64-515.65.01/kernel-open/nvidia-uvm/uvm_migrate_pageable.c	2022-09-05 01:18:03.416038073 +0100
+@@ -1001,7 +1001,7 @@ NV_STATUS uvm_migrate_pageable(uvm_migra
+     return status;
+ }
+ 
+-NV_STATUS uvm_migrate_pageable_init()
++NV_STATUS uvm_migrate_pageable_init(void)
+ {
+     g_uvm_migrate_vma_state_cache = NV_KMEM_CACHE_CREATE("migrate_vma_state_t", migrate_vma_state_t);
+     if (!g_uvm_migrate_vma_state_cache)
+@@ -1010,7 +1010,7 @@ NV_STATUS uvm_migrate_pageable_init()
+     return NV_OK;
+ }
+ 
+-void uvm_migrate_pageable_exit()
++void uvm_migrate_pageable_exit(void)
+ {
+     kmem_cache_destroy_safe(&g_uvm_migrate_vma_state_cache);
+ }
