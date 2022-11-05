@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 %global _dracut_conf_d  %{_prefix}/lib/dracut/dracut.conf.d
 %global _modprobe_d     %{_prefix}/lib/modprobe.d/
-%global kernel_source_dir %{_builddir}/linux-%{kver}
+%global kernel_source_dir %{_builddir}/linux-%{kversion}
 %global nvidia_driver_dir %{_builddir}/NVIDIA-Linux-%{_arch}-%{version}
 %global open_dkms_name nvidia-open
 %global open_kmod_source NVIDIA-kernel-module-source
@@ -17,8 +17,8 @@
 
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
-Version:	515.65.01
-Release:	2
+Version:	520.56.06
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
 Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
@@ -86,8 +86,8 @@ This package should only be used as a last resort.
 
 %{expand:%(for i in %{kernels}; do
 	K=$(echo $i |sed -e 's,-,_,g')
-	echo "%%global kversion_$K $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1)"
-	echo "%%global kdir_$K $(rpm -q --qf %%{VERSION}-$i-%%{RELEASE}%%{DISTTAG} kernel-${i}-devel |tail -n1 |sed -e 's,-rc,,')"
+	echo "%%global kversion_$K $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |sort -V |tail -n1)"
+	echo "%%global kdir_$K $(rpm -q --qf %%{VERSION}-$i-%%{RELEASE}%%{DISTTAG} kernel-${i}-devel |sort -V |tail -n1 |sed -e 's,-rc,,')"
 done)}
 %(
 for i in %{kernels}; do
@@ -133,8 +133,8 @@ done
 )
 
 %package kmod
-%define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |tail -n1)
-%define kdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-desktop-devel |tail -n1)
+%define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |sort -V |tail -n1)
+%define kdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-desktop-devel |sort -V |tail -n1)
 Summary:	Kernel modules needed by the binary-only nvidia driver
 Provides:	%{name}-kmod = %{EVRD}
 Requires: %{name}-kmod-common = %{version}
@@ -545,7 +545,6 @@ install -p -m 0644 %{SOURCE6} %{buildroot}%{_dracut_conf_d}/
 # https://github.com/negativo17/nvidia-driver/issues/27
 install -p -m 644 %{SOURCE4} %{buildroot}%{_udevrulesdir}
 
-
 %post kmod-common
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="rd.driver.blacklist=nouveau /' %{_sysconfdir}/default/grub
 /sbin/depmod -a
@@ -667,6 +666,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_usrsrc}/%{open_dkms_name}-%{version}/Makefile
 %{_usrsrc}/%{open_dkms_name}-%{version}/conftest.sh
 %{_usrsrc}/%{open_dkms_name}-%{version}/dkms.conf
+%{_usrsrc}/%{open_dkms_name}-%{version}/*.mk
 
 %files -n nvidia-kmod-source
 %{_usrsrc}/%{open_dkms_name}-%{version}/src
