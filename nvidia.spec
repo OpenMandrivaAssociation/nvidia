@@ -27,6 +27,9 @@ Source10:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11
 Source11:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/modprobe-nvidia.conf
 Patch0:         NaziVidia-kernel-6.0.patch
 Patch1:		nvidia-525-clang-15.patch
+%ifarch %{aarch64}
+Patch2:		nvidia-525-aarch64-clang-15.patch
+%endif
 Group:		Hardware
 License:	distributable
 # Just to be on the safe side, it may not be wise
