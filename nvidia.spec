@@ -17,7 +17,7 @@
 
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
-Version:	520.56.06
+Version:	525.60.11
 Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
@@ -26,7 +26,7 @@ Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linu
 Source10:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
 Source11:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/modprobe-nvidia.conf
 Patch0:         NaziVidia-kernel-6.0.patch
-Patch1:		nvidia-clang-15.patch
+Patch1:		nvidia-525-clang-15.patch
 Group:		Hardware
 License:	distributable
 # Just to be on the safe side, it may not be wise

@@ -1,0 +1,472 @@
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia/nvlink_linux.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia/nvlink_linux.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia/nvlink_linux.c.omv~	2022-11-28 17:20:21.265426916 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia/nvlink_linux.c	2022-11-28 17:20:25.029458794 +0100
+@@ -560,7 +560,7 @@ void nvlink_assert(int cond)
+     }
+ }
+ 
+-void * nvlink_allocLock()
++void * nvlink_allocLock(void)
+ {
+     struct semaphore *sema;
+ 
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia/os-interface.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia/os-interface.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia/os-interface.c.omv~	2022-11-28 17:19:54.204196042 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia/os-interface.c	2022-11-28 17:20:05.747294893 +0100
+@@ -1166,14 +1166,14 @@ void NV_API_CALL os_dbg_breakpoint(void)
+ #endif // CONFIG_X86_REMOTE_DEBUG || CONFIG_KGDB || CONFIG_XMON
+ }
+ 
+-NvU32 NV_API_CALL os_get_cpu_number()
++NvU32 NV_API_CALL os_get_cpu_number(void)
+ {
+     NvU32 cpu_id = get_cpu();
+     put_cpu();
+     return cpu_id;
+ }
+ 
+-NvU32 NV_API_CALL os_get_cpu_count()
++NvU32 NV_API_CALL os_get_cpu_count(void)
+ {
+     return NV_NUM_CPUS();
+ }
+@@ -1269,7 +1269,7 @@ void NV_API_CALL os_get_screen_info(
+ #endif
+ }
+ 
+-void NV_API_CALL os_dump_stack()
++void NV_API_CALL os_dump_stack(void)
+ {
+     dump_stack();
+ }
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_common.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_common.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_common.c.omv~	2022-11-28 17:20:50.108669767 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_common.c	2022-11-28 17:20:54.188703862 +0100
+@@ -34,7 +34,7 @@ static int uvm_debug_prints = UVM_IS_DEB
+ module_param(uvm_debug_prints, int, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(uvm_debug_prints, "Enable uvm debug prints.");
+ 
+-bool uvm_debug_prints_enabled()
++bool uvm_debug_prints_enabled(void)
+ {
+     return uvm_debug_prints != 0;
+ }
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_gpu_access_counters.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_gpu_access_counters.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_gpu_access_counters.c.omv~	2022-11-28 17:22:36.246537657 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_gpu_access_counters.c	2022-11-28 17:22:43.815598138 +0100
+@@ -1718,7 +1718,7 @@ bool uvm_va_space_has_access_counter_mig
+     return atomic_read(&va_space_access_counters->params.enable_mimc_migrations);
+ }
+ 
+-NV_STATUS uvm_perf_access_counters_init()
++NV_STATUS uvm_perf_access_counters_init(void)
+ {
+     uvm_perf_module_init("perf_access_counters",
+                          UVM_PERF_MODULE_TYPE_ACCESS_COUNTERS,
+@@ -1729,7 +1729,7 @@ NV_STATUS uvm_perf_access_counters_init(
+     return NV_OK;
+ }
+ 
+-void uvm_perf_access_counters_exit()
++void uvm_perf_access_counters_exit(void)
+ {
+ }
+ 
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_lock.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_lock.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_lock.c.omv~	2022-11-28 17:22:10.079327196 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_lock.c	2022-11-28 17:22:13.484354705 +0100
+@@ -334,7 +334,7 @@ bool __uvm_check_all_unlocked(uvm_thread
+     return false;
+ }
+ 
+-bool __uvm_thread_check_all_unlocked()
++bool __uvm_thread_check_all_unlocked(void)
+ {
+     return __uvm_check_all_unlocked(uvm_thread_context_lock_get());
+ }
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_migrate.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_migrate.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_migrate.c.omv~	2022-11-28 17:24:41.451517363 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_migrate.c	2022-11-28 17:24:46.953559483 +0100
+@@ -795,7 +795,7 @@ static NV_STATUS semaphore_release(NvU64
+     return semaphore_release_from_gpu(gpu, semaphore_pool, semaphore_address, semaphore_payload, tracker_ptr);
+ }
+ 
+-NV_STATUS uvm_migrate_init()
++NV_STATUS uvm_migrate_init(void)
+ {
+     NV_STATUS status = uvm_migrate_pageable_init();
+     if (status != NV_OK)
+@@ -821,7 +821,7 @@ NV_STATUS uvm_migrate_init()
+     return NV_OK;
+ }
+ 
+-void uvm_migrate_exit()
++void uvm_migrate_exit(void)
+ {
+     uvm_migrate_pageable_exit();
+ }
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_heuristics.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_heuristics.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_heuristics.c.omv~	2022-11-28 17:25:00.286661247 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_heuristics.c	2022-11-28 17:25:05.379700009 +0100
+@@ -28,7 +28,7 @@
+ #include "uvm_gpu_access_counters.h"
+ #include "uvm_va_space.h"
+ 
+-NV_STATUS uvm_perf_heuristics_init()
++NV_STATUS uvm_perf_heuristics_init(void)
+ {
+     NV_STATUS status;
+ 
+@@ -47,7 +47,7 @@ NV_STATUS uvm_perf_heuristics_init()
+     return NV_OK;
+ }
+ 
+-void uvm_perf_heuristics_exit()
++void uvm_perf_heuristics_exit(void)
+ {
+     uvm_perf_access_counters_exit();
+     uvm_perf_thrashing_exit();
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_prefetch.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_prefetch.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_prefetch.c.omv~	2022-11-28 17:25:59.560108800 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_prefetch.c	2022-11-28 17:26:03.478138119 +0100
+@@ -425,7 +425,7 @@ void uvm_perf_prefetch_get_hint(uvm_va_b
+     }
+ }
+ 
+-NV_STATUS uvm_perf_prefetch_init()
++NV_STATUS uvm_perf_prefetch_init(void)
+ {
+     g_uvm_perf_prefetch_enable = uvm_perf_prefetch_enable != 0;
+ 
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_thrashing.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_thrashing.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_thrashing.c.omv~	2022-11-28 17:25:39.134955439 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_perf_thrashing.c	2022-11-28 17:25:46.717012471 +0100
+@@ -1943,7 +1943,7 @@ NV_STATUS uvm_perf_thrashing_register_gp
+     return NV_OK;
+ }
+ 
+-NV_STATUS uvm_perf_thrashing_init()
++NV_STATUS uvm_perf_thrashing_init(void)
+ {
+     NV_STATUS status;
+ 
+@@ -2002,7 +2002,7 @@ error:
+     return status;
+ }
+ 
+-void uvm_perf_thrashing_exit()
++void uvm_perf_thrashing_exit(void)
+ {
+     cpu_thrashing_stats_exit();
+ 
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_procfs.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_procfs.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_procfs.c.omv~	2022-11-28 17:21:41.149091927 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_procfs.c	2022-11-28 17:21:52.734186475 +0100
+@@ -46,7 +46,7 @@ static struct proc_dir_entry *uvm_proc_d
+ static struct proc_dir_entry *uvm_proc_gpus;
+ static struct proc_dir_entry *uvm_proc_cpu;
+ 
+-NV_STATUS uvm_procfs_init()
++NV_STATUS uvm_procfs_init(void)
+ {
+     if (!uvm_procfs_is_enabled())
+         return NV_OK;
+@@ -66,17 +66,17 @@ NV_STATUS uvm_procfs_init()
+     return NV_OK;
+ }
+ 
+-void uvm_procfs_exit()
++void uvm_procfs_exit(void)
+ {
+     proc_remove(uvm_proc_dir);
+ }
+ 
+-struct proc_dir_entry *uvm_procfs_get_gpu_base_dir()
++struct proc_dir_entry *uvm_procfs_get_gpu_base_dir(void)
+ {
+     return uvm_proc_gpus;
+ }
+ 
+-struct proc_dir_entry *uvm_procfs_get_cpu_base_dir()
++struct proc_dir_entry *uvm_procfs_get_cpu_base_dir(void)
+ {
+     return uvm_proc_cpu;
+ }
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_push.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_push.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_push.c.omv~	2022-11-28 17:23:02.477746524 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_push.c	2022-11-28 17:23:07.534786557 +0100
+@@ -289,12 +289,12 @@ NV_STATUS __uvm_push_begin_acquire_on_re
+     return status;
+ }
+ 
+-bool uvm_push_info_is_tracking_descriptions()
++bool uvm_push_info_is_tracking_descriptions(void)
+ {
+     return uvm_debug_enable_push_desc != 0;
+ }
+ 
+-bool uvm_push_info_is_tracking_acquires()
++bool uvm_push_info_is_tracking_acquires(void)
+ {
+     return uvm_debug_enable_push_acquire_info != 0;
+ }
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_thread_context.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_thread_context.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_thread_context.c.omv~	2022-11-28 17:23:49.074112665 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_thread_context.c	2022-11-28 17:23:52.108136301 +0100
+@@ -101,7 +101,7 @@ static DEFINE_PER_CPU(uvm_thread_context
+ static void thread_context_non_interrupt_remove(uvm_thread_context_t *thread_context,
+                                                 uvm_thread_context_table_entry_t *thread_context_entry);
+ 
+-bool uvm_thread_context_wrapper_is_used()
++bool uvm_thread_context_wrapper_is_used(void)
+ {
+     // The wrapper contains lock information. While uvm_record_lock_X
+     // routines are a no-op outside of debug mode, unit tests do invoke their
+diff -up NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_tools.c.omv~ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_tools.c
+--- NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_tools.c.omv~	2022-11-28 17:21:17.157894660 +0100
++++ NVIDIA-Linux-x86_64-515.65.01/kernel/nvidia-uvm/uvm_tools.c	2022-11-28 17:21:20.773924523 +0100
+@@ -2204,7 +2204,7 @@ NV_STATUS uvm_api_tools_get_processor_uu
+     return NV_OK;
+ }
+ 
+-void uvm_tools_flush_events()
++void uvm_tools_flush_events(void)
+ {
+     tools_schedule_completed_events();
+ 
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia/nvlink_linux.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia/nvlink_linux.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia/nvlink_linux.c.omv~	2022-11-28 17:35:32.399156775 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia/nvlink_linux.c	2022-11-28 17:35:35.396177079 +0100
+@@ -560,7 +560,7 @@ void nvlink_assert(int cond)
+     }
+ }
+ 
+-void * nvlink_allocLock()
++void * nvlink_allocLock(void)
+ {
+     struct semaphore *sema;
+ 
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia/os-interface.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia/os-interface.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia/os-interface.c.omv~	2022-11-28 17:34:47.525852016 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia/os-interface.c	2022-11-28 17:35:00.136937807 +0100
+@@ -1170,14 +1170,14 @@ void NV_API_CALL os_dbg_breakpoint(void)
+ #endif // CONFIG_X86_REMOTE_DEBUG || CONFIG_KGDB || CONFIG_XMON
+ }
+ 
+-NvU32 NV_API_CALL os_get_cpu_number()
++NvU32 NV_API_CALL os_get_cpu_number(void)
+ {
+     NvU32 cpu_id = get_cpu();
+     put_cpu();
+     return cpu_id;
+ }
+ 
+-NvU32 NV_API_CALL os_get_cpu_count()
++NvU32 NV_API_CALL os_get_cpu_count(void)
+ {
+     return NV_NUM_CPUS();
+ }
+@@ -1273,7 +1273,7 @@ void NV_API_CALL os_get_screen_info(
+ #endif
+ }
+ 
+-void NV_API_CALL os_dump_stack()
++void NV_API_CALL os_dump_stack(void)
+ {
+     dump_stack();
+ }
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_common.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_common.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_common.c.omv~	2022-11-28 17:36:51.308689482 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_common.c	2022-11-28 17:36:54.776712807 +0100
+@@ -34,7 +34,7 @@ static int uvm_debug_prints = UVM_IS_DEB
+ module_param(uvm_debug_prints, int, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(uvm_debug_prints, "Enable uvm debug prints.");
+ 
+-bool uvm_debug_prints_enabled()
++bool uvm_debug_prints_enabled(void)
+ {
+     return uvm_debug_prints != 0;
+ }
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_gpu_access_counters.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_gpu_access_counters.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_gpu_access_counters.c.omv~	2022-11-28 17:38:14.419246659 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_gpu_access_counters.c	2022-11-28 17:38:20.871289764 +0100
+@@ -1718,7 +1718,7 @@ bool uvm_va_space_has_access_counter_mig
+     return atomic_read(&va_space_access_counters->params.enable_mimc_migrations);
+ }
+ 
+-NV_STATUS uvm_perf_access_counters_init()
++NV_STATUS uvm_perf_access_counters_init(void)
+ {
+     uvm_perf_module_init("perf_access_counters",
+                          UVM_PERF_MODULE_TYPE_ACCESS_COUNTERS,
+@@ -1729,7 +1729,7 @@ NV_STATUS uvm_perf_access_counters_init(
+     return NV_OK;
+ }
+ 
+-void uvm_perf_access_counters_exit()
++void uvm_perf_access_counters_exit(void)
+ {
+ }
+ 
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_lock.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_lock.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_lock.c.omv~	2022-11-28 17:37:45.752054885 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_lock.c	2022-11-28 17:37:48.877075812 +0100
+@@ -334,7 +334,7 @@ bool __uvm_check_all_unlocked(uvm_thread
+     return false;
+ }
+ 
+-bool __uvm_thread_check_all_unlocked()
++bool __uvm_thread_check_all_unlocked(void)
+ {
+     return __uvm_check_all_unlocked(uvm_thread_context_lock_get());
+ }
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_migrate.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_migrate.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_migrate.c.omv~	2022-11-28 17:41:34.170572883 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_migrate.c	2022-11-28 17:41:40.564615085 +0100
+@@ -795,7 +795,7 @@ static NV_STATUS semaphore_release(NvU64
+     return semaphore_release_from_gpu(gpu, semaphore_pool, semaphore_address, semaphore_payload, tracker_ptr);
+ }
+ 
+-NV_STATUS uvm_migrate_init()
++NV_STATUS uvm_migrate_init(void)
+ {
+     NV_STATUS status = uvm_migrate_pageable_init();
+     if (status != NV_OK)
+@@ -821,7 +821,7 @@ NV_STATUS uvm_migrate_init()
+     return NV_OK;
+ }
+ 
+-void uvm_migrate_exit()
++void uvm_migrate_exit(void)
+ {
+     uvm_migrate_pageable_exit();
+ }
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_heuristics.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_heuristics.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_heuristics.c.omv~	2022-11-28 17:42:28.171928898 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_heuristics.c	2022-11-28 17:42:33.209962065 +0100
+@@ -28,7 +28,7 @@
+ #include "uvm_gpu_access_counters.h"
+ #include "uvm_va_space.h"
+ 
+-NV_STATUS uvm_perf_heuristics_init()
++NV_STATUS uvm_perf_heuristics_init(void)
+ {
+     NV_STATUS status;
+ 
+@@ -47,7 +47,7 @@ NV_STATUS uvm_perf_heuristics_init()
+     return NV_OK;
+ }
+ 
+-void uvm_perf_heuristics_exit()
++void uvm_perf_heuristics_exit(void)
+ {
+     uvm_perf_access_counters_exit();
+     uvm_perf_thrashing_exit();
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_prefetch.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_prefetch.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_prefetch.c.omv~	2022-11-28 17:43:57.525516115 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_prefetch.c	2022-11-28 17:44:01.683543389 +0100
+@@ -425,7 +425,7 @@ void uvm_perf_prefetch_get_hint(uvm_va_b
+     }
+ }
+ 
+-NV_STATUS uvm_perf_prefetch_init()
++NV_STATUS uvm_perf_prefetch_init(void)
+ {
+     g_uvm_perf_prefetch_enable = uvm_perf_prefetch_enable != 0;
+ 
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_thrashing.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_thrashing.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_thrashing.c.omv~	2022-11-28 17:42:46.382048751 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_perf_thrashing.c	2022-11-28 17:42:52.123086517 +0100
+@@ -1943,7 +1943,7 @@ NV_STATUS uvm_perf_thrashing_register_gp
+     return NV_OK;
+ }
+ 
+-NV_STATUS uvm_perf_thrashing_init()
++NV_STATUS uvm_perf_thrashing_init(void)
+ {
+     NV_STATUS status;
+ 
+@@ -2002,7 +2002,7 @@ error:
+     return status;
+ }
+ 
+-void uvm_perf_thrashing_exit()
++void uvm_perf_thrashing_exit(void)
+ {
+     cpu_thrashing_stats_exit();
+ 
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_procfs.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_procfs.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_procfs.c.omv~	2022-11-28 17:37:23.995909061 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_procfs.c	2022-11-28 17:37:33.742974424 +0100
+@@ -46,7 +46,7 @@ static struct proc_dir_entry *uvm_proc_d
+ static struct proc_dir_entry *uvm_proc_gpus;
+ static struct proc_dir_entry *uvm_proc_cpu;
+ 
+-NV_STATUS uvm_procfs_init()
++NV_STATUS uvm_procfs_init(void)
+ {
+     if (!uvm_procfs_is_enabled())
+         return NV_OK;
+@@ -66,17 +66,17 @@ NV_STATUS uvm_procfs_init()
+     return NV_OK;
+ }
+ 
+-void uvm_procfs_exit()
++void uvm_procfs_exit(void)
+ {
+     proc_remove(uvm_proc_dir);
+ }
+ 
+-struct proc_dir_entry *uvm_procfs_get_gpu_base_dir()
++struct proc_dir_entry *uvm_procfs_get_gpu_base_dir(void)
+ {
+     return uvm_proc_gpus;
+ }
+ 
+-struct proc_dir_entry *uvm_procfs_get_cpu_base_dir()
++struct proc_dir_entry *uvm_procfs_get_cpu_base_dir(void)
+ {
+     return uvm_proc_cpu;
+ }
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_push.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_push.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_push.c.omv~	2022-11-28 17:38:41.760429187 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_push.c	2022-11-28 17:38:46.465460562 +0100
+@@ -289,12 +289,12 @@ NV_STATUS __uvm_push_begin_acquire_on_re
+     return status;
+ }
+ 
+-bool uvm_push_info_is_tracking_descriptions()
++bool uvm_push_info_is_tracking_descriptions(void)
+ {
+     return uvm_debug_enable_push_desc != 0;
+ }
+ 
+-bool uvm_push_info_is_tracking_acquires()
++bool uvm_push_info_is_tracking_acquires(void)
+ {
+     return uvm_debug_enable_push_acquire_info != 0;
+ }
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_thread_context.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_thread_context.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_thread_context.c.omv~	2022-11-28 17:39:10.343619643 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_thread_context.c	2022-11-28 17:39:15.963657048 +0100
+@@ -101,7 +101,7 @@ static DEFINE_PER_CPU(uvm_thread_context
+ static void thread_context_non_interrupt_remove(uvm_thread_context_t *thread_context,
+                                                 uvm_thread_context_table_entry_t *thread_context_entry);
+ 
+-bool uvm_thread_context_wrapper_is_used()
++bool uvm_thread_context_wrapper_is_used(void)
+ {
+     // The wrapper contains lock information. While uvm_record_lock_X
+     // routines are a no-op outside of debug mode, unit tests do invoke their
+diff -up NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_tools.c.omv~ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_tools.c
+--- NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_tools.c.omv~	2022-11-28 17:37:06.274790091 +0100
++++ NVIDIA-Linux-x86_64-525.60.11/kernel-open/nvidia-uvm/uvm_tools.c	2022-11-28 17:37:09.545812064 +0100
+@@ -2204,7 +2204,7 @@ NV_STATUS uvm_api_tools_get_processor_uu
+     return NV_OK;
+ }
+ 
+-void uvm_tools_flush_events()
++void uvm_tools_flush_events(void)
+ {
+     tools_schedule_completed_events();
+ 
