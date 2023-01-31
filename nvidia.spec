@@ -10,7 +10,8 @@
 %global kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
 
 %ifarch %{x86_64}
-%global kernels desktop server desktop-gcc server-gcc rc-desktop rc-server rc-desktop-gcc rc-server-gcc
+%global kernels desktop server rc-desktop rc-server
+# desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
 %else
 %global kernels desktop server rc-desktop rc-server
 %endif
