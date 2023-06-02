@@ -15,7 +15,7 @@ diff -uraN NVIDIA-Linux-x86_64-530.41.03/kernel/nvidia-drm/nvidia-drm-drv.c omv-
      nv_drm_driver.dumb_map_offset  = nv_drm_dumb_map_offset;
 +// Rel. commit "drm: remove dumb_destroy callback" (Christian König, 26 Jan 2023)
 +// NB: No resources are leaked, the kernel releases the same resources by default
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 4, 0)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 3, 0)
      nv_drm_driver.dumb_destroy     = nv_drm_dumb_destroy;
 +#endif
  #endif /* NV_DRM_ATOMIC_MODESET_AVAILABLE */
