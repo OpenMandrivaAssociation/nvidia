@@ -20,7 +20,7 @@ diff -uraN NVIDIA-Linux-x86_64-530.41.03/kernel/nvidia-drm/nvidia-drm-drv.c omv-
 +#endif
  #endif /* NV_DRM_ATOMIC_MODESET_AVAILABLE */
  }
- diff -uraN NVIDIA-Linux-x86_64-530.41.03/kernel-open/nvidia-drm/nvidia-drm-drv.c omv-NVIDIA-Linux-x86_64-530.41.03/kernel-open/nvidia-drm/nvidia-drm-drv.c
+diff -uraN NVIDIA-Linux-x86_64-530.41.03/kernel-open/nvidia-drm/nvidia-drm-drv.c omv-NVIDIA-Linux-x86_64-530.41.03/kernel-open/nvidia-drm/nvidia-drm-drv.c
 --- NVIDIA-Linux-x86_64-530.41.03/kernel-open/nvidia-drm/nvidia-drm-drv.c	2023-03-16 20:22:15.000000000 +0100
 +++ omv-NVIDIA-Linux-x86_64-530.41.03/kernel-open/nvidia-drm/nvidia-drm-drv.c	2023-06-02 20:38:41.467596998 +0200
 @@ -20,6 +20,7 @@
