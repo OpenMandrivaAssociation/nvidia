@@ -611,9 +611,9 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-tls.so*
 %{_sysconfdir}/OpenCL/vendors/nvidia.icd
 %{_libdir}/libnvidia-cfg.so*
-%ifarch %{x86_64}
-%{_libdir}/libnvidia-compiler.so*
-%endif
+#ifarch %{x86_64}
+#%{_libdir}/libnvidia-compiler.so*
+#endif
 %{_libdir}/libnvidia-opencl.so*
 %{_libdir}/libnvidia-encode.so*
 %{_libdir}/libnvidia-fbc.so*
@@ -651,7 +651,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_prefix}/lib/libnvidia-ptxjitcompiler.so*
 #%%{_prefix}/lib/libnvidia-fatbinaryloader.so*
 %{_prefix}/lib/libnvidia-tls.so*
-%{_prefix}/lib/libnvidia-compiler.so*
+#{_prefix}/lib/libnvidia-compiler.so*
 %{_prefix}/lib/libnvidia-opencl.so*
 %{_prefix}/lib/libnvidia-encode.so*
 %{_prefix}/lib/libnvidia-fbc.so*
