@@ -18,8 +18,8 @@
 
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
-Version:	530.41.03
-Release:	6
+Version:	535.54.03
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
 Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
@@ -28,7 +28,7 @@ Source10:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11
 Source11:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/modprobe-nvidia.conf
 Patch0:         NaziVidia-kernel-6.0.patch
 #Patch1:		nvidia-525-clang-15.patch
-Patch3:		nvidia-fix-linux-6.4.patch
+#Patch3:		nvidia-fix-linux-6.4.patch
 %ifarch %{aarch64}
 #Patch2:		nvidia-525-aarch64-clang-15.patch
 %endif
@@ -455,9 +455,9 @@ inst %{_sysconfdir}/OpenCL/vendors/nvidia.icd
 instx %{_libdir}/libnvidia-cfg.so.%{version}
 sl nvidia-cfg 1
 
-%ifarch %{x86_64}
-instx %{_libdir}/libnvidia-compiler.so.%{version}
-%endif
+#ifarch %{x86_64}
+#instx %{_libdir}/libnvidia-compiler.so.%{version}
+#endif
 
 instx %{_libdir}/libnvidia-opencl.so.%{version}
 
@@ -611,9 +611,9 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-tls.so*
 %{_sysconfdir}/OpenCL/vendors/nvidia.icd
 %{_libdir}/libnvidia-cfg.so*
-%ifarch %{x86_64}
-%{_libdir}/libnvidia-compiler.so*
-%endif
+#ifarch %{x86_64}
+#%{_libdir}/libnvidia-compiler.so*
+#endif
 %{_libdir}/libnvidia-opencl.so*
 %{_libdir}/libnvidia-encode.so*
 %{_libdir}/libnvidia-fbc.so*
@@ -651,7 +651,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_prefix}/lib/libnvidia-ptxjitcompiler.so*
 #%%{_prefix}/lib/libnvidia-fatbinaryloader.so*
 %{_prefix}/lib/libnvidia-tls.so*
-%{_prefix}/lib/libnvidia-compiler.so*
+#{_prefix}/lib/libnvidia-compiler.so*
 %{_prefix}/lib/libnvidia-opencl.so*
 %{_prefix}/lib/libnvidia-encode.so*
 %{_prefix}/lib/libnvidia-fbc.so*
