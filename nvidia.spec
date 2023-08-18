@@ -27,6 +27,9 @@ Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linu
 Source10:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
 Source11:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/modprobe-nvidia.conf
 Patch0:         NaziVidia-kernel-6.0.patch
+%ifarch %{aarch64}
+Patch1:		nvidia-aarch64-fix-build.patch
+%endif
 #Patch1:		nvidia-525-clang-15.patch
 #Patch3:		nvidia-fix-linux-6.4.patch
 %ifarch %{aarch64}
