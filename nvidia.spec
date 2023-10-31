@@ -445,6 +445,7 @@ sl nvidia-ml 1
 # CUDA?
 instx %{_libdir}/libnvidia-ptxjitcompiler.so.%{version}
 sl nvidia-ptxjitcompiler 1
+instx %{_libdir}/libnvidia-gpucomp.so.%{version}
 
 #instx %%{_libdir}/libnvidia-fatbinaryloader.so.%%{version}
 
@@ -618,6 +619,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 #endif
 %{_libdir}/libnvidia-opencl.so*
 %{_libdir}/libnvidia-encode.so*
+%{_libdir}/libnvidia-gpucomp.so*
 %{_libdir}/libnvidia-fbc.so*
 %{_libdir}/libnvidia-gtk2.so*
 %ifarch %{x86_64}
@@ -654,6 +656,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 #%%{_prefix}/lib/libnvidia-fatbinaryloader.so*
 %{_prefix}/lib/libnvidia-tls.so*
 #{_prefix}/lib/libnvidia-compiler.so*
+%{_prefix}/lib/libnvidia-gpucomp.so*
 %{_prefix}/lib/libnvidia-opencl.so*
 %{_prefix}/lib/libnvidia-encode.so*
 %{_prefix}/lib/libnvidia-fbc.so*
