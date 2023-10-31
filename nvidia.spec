@@ -10,16 +10,15 @@
 %global kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
 
 %ifarch %{x86_64}
-%global kernels desktop server rc-desktop rc-server
-# desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
+%global kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
 %else
-%global kernels desktop server rc-desktop rc-server
+%global kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
 %endif
 
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
 Version:	535.113.01
-Release:	6
+Release:	7
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
 Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
