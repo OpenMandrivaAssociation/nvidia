@@ -18,7 +18,7 @@
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
 Version:	545.23.06
-Release:	1
+Release:	2
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
 Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
@@ -29,6 +29,7 @@ Patch0:         NaziVidia-kernel-6.0.patch
 %ifarch %{aarch64}
 Patch1:		nvidia-aarch64-fix-build.patch
 %endif
+Patch2:		nvidia-545-kernel-6.7.patch
 #Patch1:		nvidia-525-clang-15.patch
 #Patch3:		nvidia-fix-linux-6.4.patch
 %ifarch %{aarch64}
