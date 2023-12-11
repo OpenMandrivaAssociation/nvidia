@@ -1,0 +1,35 @@
+%package kmod-@TYPE@
+Summary:	Kernel modules needed by the binary-only nvidia driver for kernel @TYPE@ @KV@
+Release:	@REL@
+Provides:	%{name}-kmod = %{EVRD}
+Requires:	%{name}-kmod-common = %{EVRD}
+Requires:	kernel-@TYPE@ = @KV@
+Conflicts:	kernel-@TYPE@ > @KV@
+Group:		Hardware
+Provides:	should-restart = system
+Requires(post,postun):	sed dracut grub2 kmod
+BuildRequires:	kernel-@TYPE@-devel
+
+%description kmod-@TYPE@
+Kernel modules needed by the binary-only nvidia driver for kernel @TYPE@ @KV@
+
+%files kmod-@TYPE@
+/lib/modules/@KD@/kernel/drivers/video/nvidia
+
+%package kmod-open-@TYPE@
+Summary:	Open kernel modules needed by the binary-only nvidia driver for kernel @TYPE@ @KV@
+Release:	@REL@
+Provides:	%{name}-kmod = %{EVRD}
+Requires:	%{name}-kmod-common = %{EVRD}
+Requires:	kernel-@TYPE@ = @KV@
+Conflicts:	kernel-@TYPE@ > @KV@
+Group:		Hardware
+Provides:	should-restart = system
+Requires(post,postun):	sed dracut grub2 kmod
+BuildRequires:	kernel-@TYPE@-devel
+
+%description kmod-open-@TYPE@
+Open kernel modules needed by the binary-only nvidia driver for kernel @TYPE@ @KV@
+
+%files kmod-open-@TYPE@
+/lib/modules/@KD@/kernel/drivers/video/nvidia-open

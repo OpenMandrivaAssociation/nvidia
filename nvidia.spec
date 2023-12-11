@@ -18,11 +18,13 @@
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
 Version:	545.29.06
-Release:	2
+Release:	3
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
-Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
-Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linux-aarch64-%{version}.run
+Source0:	dummy.tar
+Source1:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
+Source2:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linux-aarch64-%{version}.run
+Source5:	modpackage.template
 Source10:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
 Source11:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/modprobe-nvidia.conf
 Patch0:         NaziVidia-kernel-6.0.patch
@@ -91,54 +93,6 @@ installation.
 
 This package should only be used as a last resort.
 %endif
-
-%{expand:%(for i in %{kernels}; do
-	K=$(echo $i |sed -e 's,-,_,g')
-	echo "%%global kversion_$K $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |sort -V |tail -n1)"
-	echo "%%global kdir_$K $(rpm -q --qf %%{VERSION}-$i-%%{RELEASE}%%{DISTTAG} kernel-${i}-devel |sort -V |tail -n1 |sed -e 's,-rc,,')"
-done)}
-%(
-for i in %{kernels}; do
-	K=$(echo $i |sed -e 's,-,_,g')
-	cat <<EOF
-%package kmod-$i
-Summary:	Kernel modules needed by the binary-only nvidia driver for kernel $i %%{kversion_$K}
-Release:	%{release}_$(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's,-,_,g;s, ,_,g')
-Provides:	%{name}-kmod = %{EVRD}
-Requires:	%{name}-kmod-common = %{EVRD}
-Requires:	kernel-$i = $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's, ,_,g;s,^package.*,1.0,')
-Conflicts:	kernel-$i > $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's, ,_,g;s,^package.*,1.0,')
-Group:		Hardware
-Provides:	should-restart = system
-Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-$i-devel
-
-%description kmod-$i
-Kernel modules needed by the binary-only nvidia driver for kernel $i %%{kversion_$K}
-
-%files kmod-$i
-/lib/modules/%%{kdir_$K}/kernel/drivers/video/nvidia
-
-%package kmod-open-$i
-Summary:	Open kernel modules needed by the binary-only nvidia driver for kernel $i %%{kversion_$K}
-Release:	%{release}_$(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's,-,_,g;s, ,_,g')
-Provides:	%{name}-kmod = %{EVRD}
-Requires:	%{name}-kmod-common = %{EVRD}
-Requires:	kernel-$i = $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's, ,_,g;s,^package.*,1.0,')
-Conflicts:	kernel-$i > $(rpm -q --qf '%%{VERSION}-%%{RELEASE}\n' kernel-${i}-devel |tail -n1 |sed -e 's, ,_,g;s,^package.*,1.0,')
-Group:		Hardware
-Provides:	should-restart = system
-Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-$i-devel
-
-%description kmod-open-$i
-Open kernel modules needed by the binary-only nvidia driver for kernel $i %%{kversion_$K}
-
-%files kmod-open-$i
-/lib/modules/%%{kdir_$K}/kernel/drivers/video/nvidia-open
-EOF
-done
-)
 
 %package kmod
 %define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |sort -V |tail -n1)
@@ -263,12 +217,14 @@ This package provides the common files required by all NVIDIA kernel module
 package variants.
 
 %prep
+%setup -n nvidia
+cd ..
 rm -rf NV* linux* modules* *.list
 %ifarch %{x86_64}
-sh %{S:0} --extract-only
+sh %{S:1} --extract-only
 %else
 %ifarch %{aarch64}
-sh %{S:1} --extract-only
+sh %{S:2} --extract-only
 %endif
 %endif
 cd NV*
@@ -291,6 +247,7 @@ sed -i -e 's/__VERSION_STRING/%{version}/g' %{nvidia_driver_dir}/kernel-open/dkm
 cp -r %{nvidia_driver_dir}/kernel-open %{_builddir}/%{open_kmod_source}
 
 %build
+cd ..
 #cd NVIDIA-Linux-%%{_arch}-%%{version}
 
 # The IGNORE_CC_MISMATCH flags below are needed because for some
@@ -523,13 +480,19 @@ cp -r %{nvidia_driver_dir}/html %{buildroot}%{_docdir}/%{name}
 
 # Kernel modules
 for i in %{kernels}; do
-	KD=$(rpm -q --qf "%%{VERSION}-$i-%%{RELEASE}%%{DISTTAG}\n" kernel-${i}-devel |tail -n1)
+	KD=$(rpm -q --qf "%%{VERSION}-$i-%%{RELEASE}%%{DISTTAG}\n" kernel-${i}-devel |sort -V |tail -n1)
 	if echo $i |grep -q rc; then
 		KD=$(echo $KD |sed -e 's,rc-,,g')
 	fi
 	mkdir -p %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open
 	mv ../modules-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia/
 	mv ../modules-open-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open/
+
+	# And create the package...
+	K=$(echo $i |sed -e 's,-,_,g')
+	KV=$(rpm -q --qf "%%{VERSION}-%%{RELEASE}\n" kernel-${i}-devel |sort -V |tail -n1 |sed -e 's,-rc,,')
+
+	sed -e "s,@TYPE@,$i,g;s,@KV@,$KV,g;s,@KD@,$KD,g;s,@REL@,%{release}_$(echo $KV |sed -e 's,-,_,g'),g" %{S:5} >%{specpartsdir}/$i.specpart
 done
 
 # dkms-kmod
