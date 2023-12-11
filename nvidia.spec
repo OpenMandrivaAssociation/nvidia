@@ -42,6 +42,7 @@ License:	distributable
 # Just to be on the safe side, it may not be wise
 # to load clang-built modules into a gcc-built kernel
 BuildRequires:	gcc
+%(for i in %{kernels}; do echo BuildRequires: kernel-$i-devel; done)
 Requires:	%{name}-kmod = %{EVRD}
 # Not really, the %{name}-kmod = %{EVRD} requirement is enough.
 # But we need to make sure dnf prefers the option most people
