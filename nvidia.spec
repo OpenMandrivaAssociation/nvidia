@@ -18,7 +18,7 @@
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
 Version:	545.29.06
-Release:	3
+Release:	4
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
 Source0:	dummy.tar
