@@ -18,7 +18,7 @@
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
 Version:	545.29.06
-Release:	5
+Release:	6
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
 Source0:	dummy.tar
@@ -37,6 +37,7 @@ Patch2:		nvidia-545-kernel-6.7.patch
 %ifarch %{aarch64}
 #Patch2:		nvidia-525-aarch64-clang-15.patch
 %endif
+Patch3:		nvidia-545.29.06-default-modeset.patch
 Group:		Hardware
 License:	distributable
 # Just to be on the safe side, it may not be wise
