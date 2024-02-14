@@ -1,2 +1,2 @@
 # nvidia
-This repository contains the latest NVIDIA production driver. The legacy driver is in `nvidia-legacy`
+This repository contains the latest NVIDIA production driver. This driver is for the rock release.
