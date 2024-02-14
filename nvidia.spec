@@ -13,7 +13,7 @@
 
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
-Version:	545.29.06
+Version:	550.40.07
 Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
@@ -22,8 +22,6 @@ Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linu
 Source2:	modpackage.template
 Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
 Source4:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/modprobe-nvidia.conf
-
-Patch0:		nvidia-545-kernel-6.7.patch
 
 Group:		Hardware
 License:	distributable
@@ -42,10 +40,9 @@ Requires:	%{name}-kmod-desktop = %{version}
 
 Requires:	libglvnd-egl
 Requires:	vulkan-loader
-Requires:	egl-wayland
 
 Conflicts:	nvidia-production
-Conflicts:	nvidia-beta
+Conflicts:	nvidia-new-feature
 
 %description
 This is a binary-only driver for nvidia graphics chips.
@@ -227,7 +224,7 @@ Summary:        A daemon to maintain persistent software state in the NVIDIA dri
 License:        GPLv2+
 URL:            https://github.com/NVIDIA/nvidia-persistenced
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source8:		nvidia-persistenced-%{version}.tar.gz
+Source8:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz
 Source9:		nvidia-persistenced.service
 Source10:		nvidia-persistenced.conf
 
@@ -254,7 +251,7 @@ Summary:        NVIDIA kernel module loader
 License:        GPLv2+
 URL:			https://github.com/NVIDIA/nvidia-modprobe
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source11:		nvidia-modprobe-%{version}.tar.gz
+Source11:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz
 
 BuildRequires:	gcc
 BuildRequires:	m4
@@ -505,6 +502,11 @@ sl nvidia-fbc 1
 # Assorted libraries
 instx %{_libdir}/libnvidia-allocator.so.%{version}
 instx %{_libdir}/libnvidia-api.so.1
+
+# not available for version < 550 - egl-wayland
+instx %{_libdir}/libnvidia-egl-gbm.so.1.1.1
+instx %{_libdir}/libnvidia-egl-wayland.so.1.1.13
+
 instx %{_libdir}/libnvidia-ngx.so.%{version}
 instx %{_libdir}/libnvidia-nvvm.so.%{version}
 sl nvidia-nvvm 4
@@ -683,6 +685,8 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libGLX_indirect.so.0
 %{_libdir}/libnvidia-allocator.so*
 %{_libdir}/libnvidia-api.so*
+%{_libdir}/libnvidia-egl-gbm.so*
+%{_libdir}/libnvidia-egl-wayland.so*
 %{_libdir}/libnvidia-ngx.so*
 %{_libdir}/libnvidia-nvvm.so*
 %{_libdir}/libnvidia-opticalflow.so*
