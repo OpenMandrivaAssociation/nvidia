@@ -225,7 +225,7 @@ Summary:        A daemon to maintain persistent software state in the NVIDIA dri
 License:        GPLv2+
 URL:            https://github.com/NVIDIA/nvidia-persistenced
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source8:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz
+Source8:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{name}-persistenced-%{version}.tar.gz
 Source9:		nvidia-persistenced.service
 Source10:		nvidia-persistenced.conf
 
@@ -252,7 +252,7 @@ Summary:        NVIDIA kernel module loader
 License:        GPLv2+
 URL:			https://github.com/NVIDIA/nvidia-modprobe
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source11:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz
+Source11:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{name}-modprobe-%{version}.tar.gz
 
 BuildRequires:	gcc
 BuildRequires:	m4
