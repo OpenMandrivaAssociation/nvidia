@@ -627,20 +627,19 @@ mkdir -p %{buildroot}%{_datadir}/licenses/%{name}-modprobe
 cp COPYING %{buildroot}%{_datadir}/licenses/%{name}-modprobe/COPYING
 
 %post kmod-common
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="rd.driver.blacklist=nouveau nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
 /sbin/depmod -a
 /usr/bin/dracut -f
 %{_sbindir}/update-grub2
 
 %postun kmod-common
-sed -i 's/rd.driver.blacklist=nouveau nvidia-drm.modeset=1 nvidia-drm.fbdev=1 //g' %{_sysconfdir}/default/grub
+sed -i 's/nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 //g' %{_sysconfdir}/default/grub
 /sbin/depmod -a
 /usr/bin/dracut -f
 %{_sbindir}/update-grub2
 
 %files kmod-common
-%{_dracut_conf_d}/99-nvidia.conf
-%{_modprobe_d}/modprobe-nvidia.conf
+%{_sysconfdir}/dracut.conf.d/99-nvidia.conf
 %{_udevrulesdir}/60-nvidia.rules
 %{_prefix}/lib/firmware/*
 
