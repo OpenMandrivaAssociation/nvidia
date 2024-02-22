@@ -9,7 +9,8 @@
 
 %global kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
 
-%global kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
+%global kernels desktop 
+#server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
 
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
@@ -224,7 +225,7 @@ Summary:        A daemon to maintain persistent software state in the NVIDIA dri
 License:        GPLv2+
 URL:            https://github.com/NVIDIA/nvidia-persistenced
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source8:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz
+Source8:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{name}-persistenced-%{version}.tar.gz
 Source9:		nvidia-persistenced.service
 Source10:		nvidia-persistenced.conf
 
@@ -251,7 +252,7 @@ Summary:        NVIDIA kernel module loader
 License:        GPLv2+
 URL:			https://github.com/NVIDIA/nvidia-modprobe
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source11:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz
+Source11:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{name}-modprobe-%{version}.tar.gz
 
 BuildRequires:	gcc
 BuildRequires:	m4
@@ -298,6 +299,7 @@ sed -i -e '/+= -O0 -g/d' utils.mk
 
 # modprobe
 tar -xf %{S:11} -C %{_builddir}/%{name}-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{version}
 # Remove additional CFLAGS added when enabling DEBUG
 sed -i '/+= -O0 -g/d' utils.mk
 
