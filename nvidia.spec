@@ -21,9 +21,6 @@ Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux
 Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linux-aarch64-%{version}.run
 Source2:	modpackage.template
 Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
-Source4:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/modprobe-nvidia.conf
-
-Patch0:		nvidia-545-kernel-6.7.patch
 
 Group:		Hardware
 License:	distributable
@@ -42,10 +39,9 @@ Requires:	%{name}-kmod-desktop = %{version}
 
 Requires:	libglvnd-egl
 Requires:	vulkan-loader
-Requires:	egl-wayland
 
 Conflicts:	nvidia-production
-Conflicts:	nvidia-beta
+Conflicts:	nvidia-new-feature
 
 %description
 This is a binary-only driver for nvidia graphics chips.
@@ -131,7 +127,7 @@ URL:            http://www.nvidia.com/object/unix.html
 
 # Package is not noarch as it contains pre-compiled binary code
 ExclusiveArch:  %{x86_64} ppc64le %{aarch64}
-Source5:   dkms-%{dkms_name}.conf
+Source4:   dkms-%{dkms_name}.conf
 
 BuildRequires:  sed
 
@@ -204,8 +200,8 @@ License:        NVIDIA Licensefile:///home/nreist/Development/Source/Repos/nvidi
 URL:            http://www.nvidia.com/object/unix.html
 
 BuildArch:      noarch
-Source6:	60-nvidia.rules
-Source7:	99-nvidia.conf
+Source5:	60-nvidia.rules
+Source6:	99-nvidia.conf
 
 BuildRequires:  systemd-rpm-macros
 
@@ -227,9 +223,9 @@ Summary:        A daemon to maintain persistent software state in the NVIDIA dri
 License:        GPLv2+
 URL:            https://github.com/NVIDIA/nvidia-persistenced
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source8:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{name}-persistenced-%{version}.tar.gz
-Source9:		nvidia-persistenced.service
-Source10:		nvidia-persistenced.conf
+Source7:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{name}-persistenced-%{version}.tar.gz
+Source8:		nvidia-persistenced.service
+Source9:		nvidia-persistenced.conf
 
 BuildRequires:	llvm
 BuildRequires:	pkgconfig(libtirpc)
@@ -254,7 +250,7 @@ Summary:        NVIDIA kernel module loader
 License:        GPLv2+
 URL:			https://github.com/NVIDIA/nvidia-modprobe
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source11:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{name}-modprobe-%{version}.tar.gz
+Source10:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{name}-modprobe-%{version}.tar.gz
 
 BuildRequires:	gcc
 BuildRequires:	m4
@@ -287,20 +283,21 @@ desktop-file-install --dir %{buildroot}%{_datadir}/applications/ %{nvidia_driver
 cp %{nvidia_driver_dir}/nvidia-settings.png %{buildroot}%{_datadir}/pixmaps/
 
 # dkms kmod - closed and open
-cp -f %{S:5} %{nvidia_driver_dir}/kernel/dkms.conf
-cp -f %{S:5} %{nvidia_driver_dir}/kernel-open/dkms.conf
+cp -f %{S:4} %{nvidia_driver_dir}/kernel/dkms.conf
+cp -f %{S:4} %{nvidia_driver_dir}/kernel-open/dkms.conf
 sed -i -e 's/__VERSION_STRING/%{version}/g' %{nvidia_driver_dir}/kernel/dkms.conf
 sed -i -e 's/__VERSION_STRING/%{version}/g' %{nvidia_driver_dir}/kernel-open/dkms.conf
 cp -r %{nvidia_driver_dir}/kernel-open %{open_kmod_source}
 
 # persistenced
-tar -xf %{S:8} -C %{_builddir}/%{name}-%{version}
+tar -xf %{S:7} -C %{_builddir}/%{name}-%{version}
 cd %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{version}
 # Remove additional CFLAGS added when enabling DEBUG
 sed -i -e '/+= -O0 -g/d' utils.mk
 
 # modprobe
-tar -xf %{S:11} -C %{_builddir}/%{name}-%{version}
+tar -xf %{S:10} -C %{_builddir}/%{name}-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{version}
 # Remove additional CFLAGS added when enabling DEBUG
 sed -i '/+= -O0 -g/d' utils.mk
 
@@ -505,6 +502,11 @@ sl nvidia-fbc 1
 # Assorted libraries
 instx %{_libdir}/libnvidia-allocator.so.%{version}
 instx %{_libdir}/libnvidia-api.so.1
+
+# not available for version < 550 - egl-wayland
+instx %{_libdir}/libnvidia-egl-gbm.so.1.1.1
+instx %{_libdir}/libnvidia-egl-wayland.so.1.1.13
+
 instx %{_libdir}/libnvidia-ngx.so.%{version}
 instx %{_libdir}/libnvidia-nvvm.so.%{version}
 sl nvidia-nvvm 4
@@ -586,21 +588,17 @@ mkdir -p %{buildroot}%{_usrsrc}/%{dkms_name}-%{version}/
 cp -fr %{nvidia_driver_dir}/kernel/* %{buildroot}%{_usrsrc}/%{dkms_name}-%{version}/
 
 mkdir -p %{buildroot}%{_udevrulesdir}
-mkdir -p %{buildroot}%{_modprobe_d}/
-mkdir -p %{buildroot}%{_dracut_conf_d}/
+mkdir -p %{buildroot}%{_sysconfdir}/dracut.conf.d/
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_presetdir}
 
-# Blacklist nouveau and load nvidia-uvm:
-install -p -m 0644 %{S:4} %{buildroot}%{_modprobe_d}/
-
 # Avoid Nvidia modules getting in the initrd:
-install -p -m 0644 %{S:7} %{buildroot}%{_dracut_conf_d}/
+install -p -m 0644 %{S:6} %{buildroot}%{_sysconfdir}/dracut.conf.d/
 
 # UDev rules:
 # https://github.com/NVIDIA/nvidia-modprobe/blob/master/modprobe-utils/nvidia-modprobe-utils.h#L33-L46
 # https://github.com/negativo17/nvidia-driver/issues/27
-install -p -m 644 %{S:6} %{buildroot}%{_udevrulesdir}
+install -p -m 644 %{S:5} %{buildroot}%{_udevrulesdir}
 
 # persistenced
 cd %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{version}
@@ -613,8 +611,8 @@ cp COPYING %{buildroot}%{_datadir}/licenses/%{name}-persistenced/COPYING
 
 mkdir -p %{buildroot}%{_sharedstatedir}/nvidia-persistenced
 # Systemd unit files
-install -p -m 644 -D %{SOURCE8} %{buildroot}%{_unitdir}/nvidia-persistenced.service
-install -p -m 644 -D %{SOURCE10} %{buildroot}%{_prefix}/lib/sysusers.d/nvidia-persistenced.conf
+install -p -m 644 -D %{S:8} %{buildroot}%{_unitdir}/nvidia-persistenced.service
+install -p -m 644 -D %{S:9} %{buildroot}%{_prefix}/lib/sysusers.d/nvidia-persistenced.conf
 
 # modprobe
 cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{version}
@@ -682,6 +680,8 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libGLX_indirect.so.0
 %{_libdir}/libnvidia-allocator.so*
 %{_libdir}/libnvidia-api.so*
+%{_libdir}/libnvidia-egl-gbm.so*
+%{_libdir}/libnvidia-egl-wayland.so*
 %{_libdir}/libnvidia-ngx.so*
 %{_libdir}/libnvidia-nvvm.so*
 %{_libdir}/libnvidia-opticalflow.so*
