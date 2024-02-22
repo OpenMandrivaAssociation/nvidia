@@ -1,4 +1,5 @@
 sources:
-  dummy.tar: 205a13b16eceab68446649a27a33f8beda913e8e
-  NVIDIA-Linux-aarch64-545.29.06.run: 5548655b83c703724c84923749bfce1a5a0c2c23
-  NVIDIA-Linux-x86_64-545.29.06.run: d1a8968a6b12d76a472faac48a9dafc5edaac169
+  NVIDIA-Linux-x86_64-550.40.07.run: be5b15f689bb44ab1f99798bea974915a537e544
+  NVIDIA-Linux-aarch64-550.40.07.run: 542c443d697179d111f3bb663a4c45ca464b16d3
+  nvidia-modprobe-550.40.07.tar.gz: f65cef041b72281d3d7603fc961d5adb1f88f62f
+  nvidia-persistenced-550.40.07.tar.gz: 85588fda8cf81904769fcbbdd34c8bf58538e112
