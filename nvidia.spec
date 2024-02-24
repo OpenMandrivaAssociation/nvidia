@@ -14,13 +14,15 @@
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
 Version:	550.40.07
-Release:	1
+Release:	2
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
 Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
 Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linux-aarch64-%{version}.run
 Source2:	modpackage.template
 Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
+
+Patch0:		nvidia-aarch64-fix-build.patch
 
 Group:		Hardware
 License:	distributable
