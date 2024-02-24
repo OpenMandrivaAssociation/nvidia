@@ -632,7 +632,7 @@ mkdir -p %{buildroot}%{_datadir}/licenses/%{name}-modprobe
 cp COPYING %{buildroot}%{_datadir}/licenses/%{name}-modprobe/COPYING
 
 %post kmod-common
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=['\''"]/& nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
 /sbin/depmod -a
 /usr/bin/dracut -f
 %{_sbindir}/update-grub2
