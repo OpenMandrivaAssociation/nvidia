@@ -22,8 +22,9 @@ Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linu
 Source2:	modpackage.template
 Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
 
+%ifarch %{aarch64}
 Patch0:		nvidia-aarch64-fix-build.patch
-
+%endif
 Group:		Hardware
 License:	distributable
 
@@ -32,6 +33,8 @@ License:	distributable
 BuildRequires:	gcc
 %(for i in %{kernels}; do echo BuildRequires: kernel-$i-devel; done)
 
+Requires:	%{name}-modprobe = %{version}
+Requires:	%{name}-persistenced = %{version}
 Requires:	%{name}-kmod = %{version}
 
 # Not really, the %%{name}-kmod = %%{EVRD} requirement is enough.
@@ -41,9 +44,6 @@ Requires:	%{name}-kmod-desktop = %{version}
 
 Requires:	libglvnd-egl
 Requires:	vulkan-loader
-
-Conflicts:	nvidia-production
-Conflicts:	nvidia-new-feature
 
 %description
 This is a binary-only driver for nvidia graphics chips.
@@ -224,10 +224,10 @@ package variants.
 Summary:        A daemon to maintain persistent software state in the NVIDIA driver
 License:        GPLv2+
 URL:            https://github.com/NVIDIA/nvidia-persistenced
-ExclusiveArch:  %{ix86} %{x86_64} ppc64le %{aarch64}
-Source7:	https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz#/%{name}-persistenced-%{version}.tar.gz
-Source8:	nvidia-persistenced.service
-Source9:	nvidia-persistenced.conf
+ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
+Source7:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz#/%{name}-persistenced-%{version}.tar.gz
+Source8:		nvidia-persistenced.service
+Source9:		nvidia-persistenced.conf
 
 BuildRequires:	llvm
 BuildRequires:	pkgconfig(libtirpc)
@@ -236,6 +236,7 @@ BuildRequires:	systemd
 
 # Requires cuda, but the kmod-common "builds" that
 Requires:		%{name}-kmod-common = %{version}
+Requires:		%{name} = %{version}
 
 %description persistenced
 The nvidia-persistenced utility is used to enable persistent software state in the NVIDIA
@@ -250,11 +251,14 @@ startup time of new clients in this scenario.
 %package modprobe
 Summary:        NVIDIA kernel module loader
 License:        GPLv2+
-URL:		https://github.com/NVIDIA/nvidia-modprobe
-ExclusiveArch:  %{ix86} %{x86_64} ppc64le %{aarch64}
-Source10:	https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz#/%{name}-modprobe-%{version}.tar.gz
-Requires:	%{name}-kmod == %{version}
+URL:			https://github.com/NVIDIA/nvidia-modprobe
+ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
+Source10:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz#/%{name}-modprobe-%{version}.tar.gz
+
+BuildRequires:	llvm
 BuildRequires:	m4
+
+Requires:		%{name} = %{version}
 
 %description modprobe
 This utility is used by user-space NVIDIA driver components to make sure the
