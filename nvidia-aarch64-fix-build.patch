@@ -1,0 +1,25 @@
+diff -up NVIDIA-Linux-aarch64-535.98/kernel/nvidia/nv-vtophys.c.omv~ NVIDIA-Linux-aarch64-535.98/kernel/nvidia/nv-vtophys.c
+--- NVIDIA-Linux-aarch64-535.98/kernel/nvidia/nv-vtophys.c.omv~	2023-08-18 15:22:12.041369402 +0100
++++ NVIDIA-Linux-aarch64-535.98/kernel/nvidia/nv-vtophys.c	2023-08-18 15:22:23.731378871 +0100
+@@ -29,7 +29,7 @@
+ NvU64 NV_API_CALL nv_get_kern_phys_address(NvU64 address)
+ {
+     /* direct-mapped kernel address */
+-    if (virt_addr_valid(address))
++    if (virt_addr_valid((const void*)address))
+         return __pa(address);
+ 
+     nv_printf(NV_DBG_ERRORS,
+diff -up NVIDIA-Linux-aarch64-535.98/kernel-open/nvidia/nv-vtophys.c.omv~ NVIDIA-Linux-aarch64-535.98/kernel-open/nvidia/nv-vtophys.c
+--- NVIDIA-Linux-aarch64-535.98/kernel-open/nvidia/nv-vtophys.c.omv~	2023-08-18 15:35:30.582474355 +0100
++++ NVIDIA-Linux-aarch64-535.98/kernel-open/nvidia/nv-vtophys.c	2023-08-18 15:35:37.802486901 +0100
+@@ -29,7 +29,7 @@
+ NvU64 NV_API_CALL nv_get_kern_phys_address(NvU64 address)
+ {
+     /* direct-mapped kernel address */
+-    if (virt_addr_valid(address))
++    if (virt_addr_valid((const void*)address))
+         return __pa(address);
+ 
+     nv_printf(NV_DBG_ERRORS,
+diff -up NVIDIA-Linux-aarch64-535.98/kernel-open/nvidia/nv-vtophys.c:.omv~ NVIDIA-Linux-aarch64-535.98/kernel-open/nvidia/nv-vtophys.c:
