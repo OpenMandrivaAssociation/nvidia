@@ -22,6 +22,8 @@ Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linu
 Source2:	modpackage.template
 Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
 
+Patch0:		nvidia-aarch64-fix-build.patch
+
 Group:		Hardware
 License:	distributable
 
