@@ -22,7 +22,9 @@ Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linu
 Source2:	modpackage.template
 Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
 
+%ifarch %{aarch64}
 Patch0:		nvidia-aarch64-fix-build.patch
+%endif
 
 Group:		Hardware
 License:	distributable
@@ -225,7 +227,7 @@ Summary:        A daemon to maintain persistent software state in the NVIDIA dri
 License:        GPLv2+
 URL:            https://github.com/NVIDIA/nvidia-persistenced
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source7:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{name}-persistenced-%{version}.tar.gz
+Source7:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz#/%{name}-persistenced-%{version}.tar.gz
 Source8:		nvidia-persistenced.service
 Source9:		nvidia-persistenced.conf
 
@@ -236,6 +238,7 @@ BuildRequires:	systemd
 
 # Requires cuda, but the kmod-common "builds" that
 Requires:		%{name}-kmod-common = %{version}
+Requires:		%{name} = %{version}
 
 %description persistenced
 The nvidia-persistenced utility is used to enable persistent software state in the NVIDIA
@@ -252,11 +255,11 @@ Summary:        NVIDIA kernel module loader
 License:        GPLv2+
 URL:			https://github.com/NVIDIA/nvidia-modprobe
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source10:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{name}-modprobe-%{version}.tar.gz
+Source10:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz#/%{name}-modprobe-%{version}.tar.gz
 
 BuildRequires:	gcc
 BuildRequires:	m4
-Requires:		%{name}-kmod == %{version}
+Requires:		%{name} = %{version}
 
 %description modprobe
 This utility is used by user-space NVIDIA driver components to make sure the
