@@ -1,0 +1,37 @@
+diff -Naru nvidia-settings-550.40.07/src/libXNVCtrl/Makefile nvidia-settings-550.40.07-patched/src/libXNVCtrl/Makefile
+--- nvidia-settings-550.40.07/src/libXNVCtrl/Makefile	2024-01-24 12:20:07.000000000 -0500
++++ nvidia-settings-550.40.07-patched/src/libXNVCtrl/Makefile	2024-02-25 00:08:08.960494445 -0500
+@@ -50,8 +50,10 @@
+ 
+ .PHONY: all
+ all: $(LIBXNVCTRL)
++all: $(LIBXNVCTRL_SHARED)
+ 
+ .PHONY: clean
+ clean:
+ 	rm -rf $(LIBXNVCTRL) *~ \
+ 		$(OUTPUTDIR)/*.o $(OUTPUTDIR)/*.d
++	rm -f $(LIBXNVCTRL_SHARED) $(LIBXNVCTRL_SHARED).*
+diff -Naru nvidia-settings-550.40.07/src/libXNVCtrl/xnvctrl.mk nvidia-settings-550.40.07-patched/src/libXNVCtrl/xnvctrl.mk
+--- nvidia-settings-550.40.07/src/libXNVCtrl/xnvctrl.mk	2024-01-24 12:20:07.000000000 -0500
++++ nvidia-settings-550.40.07-patched/src/libXNVCtrl/xnvctrl.mk	2024-02-25 00:09:42.737926805 -0500
+@@ -34,7 +34,8 @@
+   XNVCTRL_CFLAGS := $(shell $(PKG_CONFIG) --cflags x11)
+ endif
+ 
+-LIBXNVCTRL = $(OUTPUTDIR)/libXNVCtrl.a
+++LIBXNVCTRL = libXNVCtrl.a
+++LIBXNVCTRL_SHARED = libXNVCtrl.so
+ 
+ LIBXNVCTRL_SRC = $(XNVCTRL_DIR)/NVCtrl.c
+ 
+@@ -44,3 +45,9 @@
+ 
+ $(LIBXNVCTRL) : $(LIBXNVCTRL_OBJ)
+ 	$(call quiet_cmd,AR) ru $@ $(LIBXNVCTRL_OBJ)
++
+++$(LIBXNVCTRL_SHARED): $(LIBXNVCTRL_OBJ)
++	$(RM) $@ $@.*
++	$(CC) -shared -Wl,-soname=$@.0 -o $@.0.0.0 $(LDFLAGS) $^ -lXext -lX11
++	ln -s $@.0.0.0 $@.0
++	ln -s $@.0 $@
