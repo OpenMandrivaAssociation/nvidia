@@ -1,0 +1,19 @@
+Index: nvidia-settings-530.16/doc/nvidia-settings.desktop
+===================================================================
+--- nvidia-settings-530.16.orig/doc/nvidia-settings.desktop
++++ nvidia-settings-530.16/doc/nvidia-settings.desktop
+@@ -1,11 +1,11 @@
+ [Desktop Entry]
+ Type=Application
+-Encoding=UTF-8
+ Name=NVIDIA X Server Settings
+ Comment=Configure NVIDIA X Server Settings
+-Exec=__UTILS_PATH__/nvidia-settings
++Exec=nvidia-settings
+ Icon=nvidia-settings
+-Categories=__NVIDIA_SETTINGS_DESKTOP_CATEGORIES__
++Categories=System;Settings
++Keywords=nvidia;vulkan;opengl;driver
+ 
+ # Translation by Marcin Mikołajczak
+ Name[pl]=Ustawienia serwera X NVIDIA

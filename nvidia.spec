@@ -26,26 +26,35 @@ Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-
 Patch0:		nvidia-aarch64-fix-build.patch
 %endif
 
+# nvidia-settings
+Patch1:		%{name}-settings-desktop.patch
+
+# not currently building a so
+#Patch2:		%%{name}-settings-so.patch
+#Patch3:		%%{name}-settings-libXNVCtrl.patch
+
+Patch4:		%{name}-settings-lib-permissions.patch
+##
+
 Group:		Hardware
 License:	distributable
 
-# Just to be on the safe side, it may not be wise
-# to load clang-built modules into a gcc-built kernel
-BuildRequires:	gcc
-%(for i in %{kernels}; do echo BuildRequires: kernel-$i-devel; done)
+Provides:	%{name} = %{version}
 
+Requires:	%{name}-modprobe = %{version}
+Requires:	%{name}-settings = %{version}
 Requires:	%{name}-kmod = %{version}
 
 # Not really, the %%{name}-kmod = %%{EVRD} requirement is enough.
 # But we need to make sure dnf prefers the option most people
 # will want over something like dkms
-Requires:	%{name}-kmod-desktop = %{version}
+#Requires:	%%{name}-kmod-desktop = %%{EVRD}
 
 Requires:	libglvnd-egl
+Requires:	egl-wayland
 Requires:	vulkan-loader
 
-Conflicts:	nvidia-production
-Conflicts:	nvidia-new-feature
+Obsoletes:	nvidia-current <= %{version}
 
 %description
 This is a binary-only driver for nvidia graphics chips.
@@ -94,28 +103,41 @@ This package should only be used as a last resort.
 %define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |sort -V |tail -n1)
 %define kdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-desktop-devel |sort -V |tail -n1)
 Summary:	Kernel modules needed by the binary-only nvidia driver
-Provides:	%{name}-kmod = %{EVRD}
+Group:		Hardware
+
+Provides:	%{name}-kmod = %{version}
+Provides:	should-restart = system
+
+Requires(post,postun):	sed dracut grub2 kmod
 Requires:	%{name}-kmod-common = %{version}
-Requires:	%{name}-modprobe = %{version}
-Requires:	%{name}-persistenced = %{version}
-Requires:	kernel = %{kversion}
+Requires:	%{name}-settings = %{version}
+Requires:	%{name} = %{version}
 
 Conflicts:	kernel > %{kversion}
 
-Group:		Hardware
-Provides:	should-restart = system
-Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-desktop-devel
+%(for i in %{kernels};
+	do
+		echo Requires:	kernel-$i = %{kversion}
+		echo Obsoletes:	%{name}-kernel-modules-$i <= %{version}
+		echo Obsoletes:	%{name}-kernel-modules-$i-rc <= %{version}
+		echo Obsoletes:	%{name}-kernel-modules-$i-gcc <= %{version}
+		echo Obsoletes:	%{name}-kernel-modules-$i-clang <= %{version}
 
-Obsoletes:	nvidia-current <= %{version}
-Obsoletes:	nvidia-kernel-modules-desktop <= %{version}
-Obsoletes:	nvidia-kernel-modules-server <= %{version}
-Obsoletes:	nvidia-kernel-modules-desktop-clang <= %{version}
-Obsoletes:	nvidia-kernel-modules-server-clang <= %{version}
-Obsoletes:	nvidia-kernel-modules-desktop-rc <= %{version}
-Obsoletes:	nvidia-kernel-modules-server-rc <= %{version}
-Obsoletes:	nvidia-kernel-modules-desktop-gcc <= %{version}
-Obsoletes:	nvidia-kernel-modules-server-gcc <= %{version}
+		echo BuildRequires: kernel-$i-devel
+
+		# Just to be on the safe side, it may not be wise
+		# to load clang-built modules into a gcc-built kernel
+		if [[ $i == *"gcc" ]]; then
+			echo BuildRequires: gcc
+		fi
+
+		# Because this service is primarily for non-X11/Wayland use cases
+		# so the kernel doesn't unload the module when not in use
+		# the persistenced service is only needed in the server kernels
+		if [[ $i == *"server"* ]]; then
+			echo Requires: %{name}-persistenced = %{version}
+		fi
+done)
 
 %description kmod
 Kernel modules needed by the binary-only nvidia driver
@@ -136,20 +158,33 @@ Source4:   dkms-%{dkms_name}.conf
 BuildRequires:  sed
 
 Provides:       %{name}-kmod = %{version}
+
 Requires:       %{name}-kmod-common = %{version}
 Requires:       %{name}-kmod-headers = %{version}
-Requires:		%{name}-modprobe = %{version}
-Requires:		%{name}-persistenced = %{version}
+Requires:		%{name} = %{version}
 Requires:       dkms
 
-Obsoletes:	nvidia-kernel-modules-desktop <= %{version}
-Obsoletes:	nvidia-kernel-modules-server <= %{version}
-Obsoletes:	nvidia-kernel-modules-desktop-clang <= %{version}
-Obsoletes:	nvidia-kernel-modules-server-clang <= %{version}
-Obsoletes:	nvidia-kernel-modules-desktop-rc <= %{version}
-Obsoletes:	nvidia-kernel-modules-server-rc <= %{version}
-Obsoletes:	nvidia-kernel-modules-desktop-gcc <= %{version}
-Obsoletes:	nvidia-kernel-modules-server-gcc <= %{version}
+%(for i in %{kernels};
+	do
+		echo Requires:	kernel-$i = %{kversion}
+		echo Obsoletes:	%{name}-kernel-modules-$i <= %{version}
+		echo Obsoletes:	%{name}-kernel-modules-$i-rc <= %{version}
+		echo Obsoletes:	%{name}-kernel-modules-$i-gcc <= %{version}
+		echo Obsoletes:	%{name}-kernel-modules-$i-clang <= %{version}
+
+		# Just to be on the safe side, it may not be wise
+		# to load clang-built modules into a gcc-built kernel
+		if [[ $i == *"gcc" ]]; then
+			echo BuildRequires: gcc
+		fi
+
+		# Because this service is primarily for non-X11/Wayland use cases
+		# so the kernel doesn't unload the module when not in use
+		# the persistenced service is only needed in the server kernels
+		if [[ $i == *"server"* ]]; then
+			echo Requires: %{name}-persistenced = %{version}
+		fi
+done)
 
 %description dkms-kmod
 This package provides the proprietary Nvidia kernel driver modules.
@@ -159,36 +194,43 @@ become available.
 # =======================================================================================#
 # dkms-open-nvidia - modified from https://github.com/NVIDIA/yum-packaging-dkms-nvidia
 # =======================================================================================#
-ttp://www.nvidia.com/object/unix.html
-%package kmod-%{open_dkms_name}-dkms
+%package dkms-kmod-open
 
 Summary:        NVIDIA driver open kernel module flavor
 License: 			NVIDIA and GPL-2
 BuildRequires:  sed
 
 Conflicts:      kmod-nvidia-latest-dkms
+
 Provides:       %{name}-kmod = %{version}
+
 Requires:       %{name}-kmod-common = %{version}
-Requires:		%{name}-modprobe = %{version}
-Requires:		%{name}-persistenced = %{version}
+Requires:		%{name} = %{version}
 Requires:       dkms
 
-%description kmod-%{open_dkms_name}-dkms
+Obsoletes:		kmod-%{open_dkms_name}-dkms <= %{version}
+
+%description dkms-kmod-open
 This package provides the open-source Nvidia kernel driver modules.
 The modules are rebuilt through the DKMS system when a new kernel or modules
 become available.
 
-%package -n nvidia-kmod-source
+%package kmod-open-source
 Summary:        NVIDIA open kernel module source files
+BuildArch:		noarch
 AutoReq:        0
+
 Conflicts:      kmod-nvidia-latest-dkms
 
-%description -n nvidia-kmod-source
+Obsoletes:		kmod-%{open_dkms_name}-dkms-nvidia-kmod-source <= %{version}
+
+%description  kmod-open-source
 NVIDIA kernel module source files for compiling open flavor of nvidia.o and nvidia-modeset.o kernel modules.
 
 %package kmod-headers
 Summary:        NVIDIA header files for precompiled streams
 AutoReq:        0
+
 Conflicts:      kmod-nvidia-latest-dkms
 
 %description kmod-headers
@@ -209,9 +251,10 @@ Source6:	99-nvidia.conf
 
 BuildRequires:  systemd-rpm-macros
 
-Requires:       %{name}-kmod = %{version}
 Provides:       %{name}-kmod-common = %{version}
+
 Requires:       %{name} = %{version}
+
 Obsoletes:      cuda-nvidia-kmod-common <= %{version}
 
 %description kmod-common
@@ -257,14 +300,74 @@ URL:			https://github.com/NVIDIA/nvidia-modprobe
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
 Source10:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz#/%{name}-modprobe-%{version}.tar.gz
 
-BuildRequires:	gcc
+BuildRequires:	llvm
 BuildRequires:	m4
+
 Requires:		%{name} = %{version}
 
 %description modprobe
 This utility is used by user-space NVIDIA driver components to make sure the
 NVIDIA kernel modules are loaded and that the NVIDIA character device files are
 present.
+
+# =======================================================================================#
+# nvidia-settings - modified from https://github.com/NVIDIA/yum-packaging-nvidia-settings
+# =======================================================================================#
+
+%package settings
+Summary:        Configure the NVIDIA graphics driver
+License:		GPLv2+
+Source11:		https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{version}.tar.gz#/%{name}-settings-%{version}.tar.gz
+Source12:		%{name}-settings-load.desktop
+Source13:		%{name}-settings.appdata.xml
+
+BuildRequires:	desktop-file-utils
+BuildRequires:	pkgconfig(dbus-1)
+BuildRequires:	pkgconfig(jansson)
+BuildRequires:	pkgconfig(vdpau) >= 1.0
+BuildRequires:	pkgconfig(xext)
+BuildRequires:	pkgconfig(xrandr)
+BuildRequires:	pkgconfig(xv)
+BuildRequires:	pkgconfig(appstream-glib)
+BuildRequires:	libxxf86vm-devel
+BuildRequires:	libGL-devel
+BuildRequires:	egl-devel
+BuildRequires:	gtk+2 > 2.4
+BuildRequires:	gtk+3
+BuildRequires:	m4
+
+#Requires:		%%{name}-libXNVCtrl = %%{version}
+Requires:		%{name} = %{version}
+Requires:		%{_lib}vdpau1 >= 0.0
+
+%description settings
+The %{name}-settings utility is a tool for configuring the NVIDIA graphics
+driver. It operates by communicating with the NVIDIA X driver, querying and
+updating state as appropriate.
+
+This communication is done with the NV-CONTROL X extension.
+
+# The current version of nvidia-settings does not have the ability to be built into an so
+# it gets linked statically. Explore enabling this if it gets fixed upstream
+
+# %%package libXNVCtrl
+# Summary:        Library providing the NV-CONTROL API
+# Provides:       libXNVCtrl = %%{EVRD}
+#
+# Requires(post):	/sbin/ldconfig
+#
+# %%description libXNVCtrl
+# This library provides the NV-CONTROL API for communicating with the proprietary
+# NVidia xorg driver. It is required for proper operation of the %%{name}-settings utility.
+#
+# %%package libXNVCtrl-devel
+# Summary:        Development files for libXNVCtrl
+# Requires:       nvidia-libXNVCtrl = %%{EVRD}
+# Requires:       pkgconfig(libX11)
+#
+# %%description libXNVCtrl-devel
+# This devel package contains libraries and header files for
+# developing applications that use the NV-CONTROL API.
 
 %prep
 %setup -T -c
@@ -276,16 +379,13 @@ sh %{S:0} --extract-only
 sh %{S:1} --extract-only
 %endif
 %endif
-cd %{nvidia_driver_dir}
-%autopatch -p1
 
-# nvidia-settings
-# Install desktop file
-sed -i 's:__PIXMAP_PATH__:%{_datadir}/pixmaps:g' %{nvidia_driver_dir}/nvidia-settings.desktop
-sed -i 's:__UTILS_PATH__:%{_bindir}:g' %{nvidia_driver_dir}/nvidia-settings.desktop
-mkdir -p %{buildroot}%{_datadir}/{applications,pixmaps}
-desktop-file-install --dir %{buildroot}%{_datadir}/applications/ %{nvidia_driver_dir}/nvidia-settings.desktop
-cp %{nvidia_driver_dir}/nvidia-settings.png %{buildroot}%{_datadir}/pixmaps/
+cd %{nvidia_driver_dir}
+%ifarch %{aarch64}
+%autopatch 0 -p1
+%endif
+
+%autopatch -m 5 -p1
 
 # dkms kmod - closed and open
 cp -f %{S:4} %{nvidia_driver_dir}/kernel/dkms.conf
@@ -296,15 +396,24 @@ cp -r %{nvidia_driver_dir}/kernel-open %{open_kmod_source}
 
 # persistenced
 tar -xf %{S:7} -C %{_builddir}/%{name}-%{version}
-cd %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{version}
 # Remove additional CFLAGS added when enabling DEBUG
-sed -i -e '/+= -O0 -g/d' utils.mk
+sed -i -e '/+= -O0 -g/d' %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{version}/utils.mk
 
 # modprobe
 tar -xf %{S:10} -C %{_builddir}/%{name}-%{version}
-cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{version}
 # Remove additional CFLAGS added when enabling DEBUG
-sed -i '/+= -O0 -g/d' utils.mk
+sed -i '/+= -O0 -g/d' %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{version}/utils.mk
+
+# settings
+tar -xf %{S:11} -C %{_builddir}/%{name}-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}
+%autopatch -m 1 -M 4 -p1
+# Remove bundled jansson
+rm -fr %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/src/jansson
+# Remove additional CFLAGS added when enabling DEBUG
+sed -i '/+= -O0 -g/d' %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/utils.mk %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/src/libXNVCtrl/utils.mk
+# Change all occurrences of destinations in each utils.mk.
+sed -i -e 's|$(PREFIX)/lib|$(PREFIX)/%{_lib}|g' %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/utils.mk %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/src/libXNVCtrl/utils.mk
 
 %build
 
@@ -319,6 +428,7 @@ for i in %{kernels}; do
 	if echo $i |grep -q rc; then
 		KD=$(echo $KD |sed -e 's,-rc,,')
 	fi
+
 	# The IGNORE_CC_MISMATCH flags below are needed because for some
 	# reason, the kernel appends the LLD version to clang kernels while
 	# nvidia does not.
@@ -397,6 +507,16 @@ export LDFLAGS="%{?__global_ldflags} -ltirpc"
 		NV_VERBOSE=1 \
 		PREFIX=%{_prefix} \
 		STRIP_CMD=true
+
+# settings
+cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}
+export CFLAGS="%{optflags} -fPIC"
+export LDFLAGS="%{?__global_ldflags}"
+%make DEBUG=1 \
+    NV_USE_BUNDLED_LIBJANSSON=0 \
+    NV_VERBOSE=1 \
+    PREFIX=%{_prefix} \
+    XNVCTRL_LDFLAGS="-L%{_libdir}"
 
 %install
 # dkms kmod open
@@ -508,10 +628,6 @@ sl nvidia-fbc 1
 instx %{_libdir}/libnvidia-allocator.so.%{version}
 instx %{_libdir}/libnvidia-api.so.1
 
-# not available for version < 550 - egl-wayland
-instx %{_libdir}/libnvidia-egl-gbm.so.1.1.1
-instx %{_libdir}/libnvidia-egl-wayland.so.1.1.13
-
 instx %{_libdir}/libnvidia-ngx.so.%{version}
 instx %{_libdir}/libnvidia-nvvm.so.%{version}
 sl nvidia-nvvm 4
@@ -519,19 +635,11 @@ instx %{_libdir}/libnvidia-opticalflow.so.%{version}
 instx %{_libdir}/libnvidia-pkcs11.so.%{version}
 instx %{_libdir}/libnvidia-pkcs11-openssl3.so.%{version}
 instx %{_libdir}/libnvidia-rtcore.so.%{version}
-instx %{_libdir}/libnvidia-wayland-client.so.%{version}
 instx %{_libdir}/libnvoptix.so.%{version}
 
 # Firmware
 mkdir -p %{buildroot}%{_prefix}/lib
 cp -a firmware %{buildroot}%{_prefix}/lib
-
-# Yuck...
-instx %{_libdir}/libnvidia-gtk2.so.%{version}
-
-%ifarch %{x86_64}
-instx %{_libdir}/libnvidia-gtk3.so.%{version}
-%endif
 
 # VDPAU
 instx %{_libdir}/vdpau/libvdpau_nvidia.so.%{version}
@@ -546,10 +654,6 @@ done
 instx %{_bindir}/nvidia-bug-report.sh
 instx %{_bindir}/nvidia-smi
 inst %{_mandir}/man1/nvidia-smi.1
-instx %{_bindir}/nvidia-settings
-inst %{_mandir}/man1/nvidia-settings.1
-inst %{_datadir}/applications/nvidia-settings.desktop
-inst %{_datadir}/pixmaps/nvidia-settings.png
 
 # glvk
 instx %{_libdir}/libnvidia-glvkspirv.so.%{version}
@@ -629,6 +733,45 @@ cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{version}
 mkdir -p %{buildroot}%{_datadir}/licenses/%{name}-modprobe
 cp COPYING %{buildroot}%{_datadir}/licenses/%{name}-modprobe/COPYING
 
+# settings
+cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}
+
+# devel package not currently building into a so
+
+# # Install libXNVCtrl headers
+# mkdir -p %%{buildroot}%%{_includedir}/NVCtrl
+# cp -af src/libXNVCtrl/*.h %%{buildroot}%%{_includedir}/NVCtrl/
+
+%make_install \
+	DEBUG=1 \
+    NV_USE_BUNDLED_LIBJANSSON=0 \
+    NV_VERBOSE=1 \
+    PREFIX=%{_prefix}
+
+mkdir -p %{buildroot}%{_datadir}/licenses/%{name}-settings/
+cp COPYING %{buildroot}%{_datadir}/licenses/%{name}-settings/COPYING
+
+# Install desktop file
+mkdir -p %{buildroot}%{_datadir}/{applications,pixmaps}
+desktop-file-install --dir %{buildroot}%{_datadir}/applications/ doc/%{name}-settings.desktop
+cp doc/%{name}-settings.png %{buildroot}%{_datadir}/pixmaps/
+
+# Install autostart file to load settings at login
+mkdir -p %{buildroot}%{_sysconfdir}/xdg/autostart/
+install -p -m 644 %{S:12} %{buildroot}%{_sysconfdir}/xdg/autostart/
+
+# install AppData and add modalias provides
+mkdir -p %{buildroot}%{_metainfodir}/
+install -p -m 0644 %{S:13} %{buildroot}%{_metainfodir}/
+
+# Remove bundled wayland client
+rm -vf %{buildroot}/%{_libdir}/libnvidia-wayland-client.so*
+
+%check
+desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}-settings.desktop
+desktop-file-validate %{buildroot}%{_sysconfdir}/xdg/autostart/%{name}-settings-load.desktop
+appstream-util validate-relax --nonet %{buildroot}/%{_metainfodir}/%{name}-settings.appdata.xml
+
 %post kmod-common
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=['\''"]/& nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
 /sbin/depmod -a
@@ -636,7 +779,7 @@ sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=['\''"]/& nouveau.modeset=0 nvidia-drm.mode
 %{_sbindir}/update-grub2
 
 %postun kmod-common
-sed -i 's/nouveau.modeset=0 nvidia-drm.modeset=1 //g' %{_sysconfdir}/default/grub
+sed -i 's/nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 //g' %{_sysconfdir}/default/grub
 /sbin/depmod -a
 /usr/bin/dracut -f
 %{_sbindir}/update-grub2
@@ -656,13 +799,13 @@ dkms install -m %{dkms_name} -v %{version} --force || :
 # Remove all versions from DKMS registry
 dkms remove -m %{dkms_name} -v %{version} --all || :
 
-%post kmod-%{open_dkms_name}-dkms
+%post dkms-kmod-open
 dkms add -m %{open_dkms_name} -v %{version} -q || :
 # Rebuild and make available for the currently running kernel
 dkms build -m %{open_dkms_name} -v %{version} -q || :
 dkms install -m %{open_dkms_name} -v %{version} -q --force || :
 
-%preun kmod-%{open_dkms_name}-dkms
+%preun dkms-kmod-open
 # Remove all versions from DKMS registry
 dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 
@@ -685,15 +828,12 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libGLX_indirect.so.0
 %{_libdir}/libnvidia-allocator.so*
 %{_libdir}/libnvidia-api.so*
-%{_libdir}/libnvidia-egl-gbm.so*
-%{_libdir}/libnvidia-egl-wayland.so*
 %{_libdir}/libnvidia-ngx.so*
 %{_libdir}/libnvidia-nvvm.so*
 %{_libdir}/libnvidia-opticalflow.so*
 %{_libdir}/libnvidia-pkcs11-openssl3.so*
 %{_libdir}/libnvidia-pkcs11.so*
 %{_libdir}/libnvidia-rtcore.so*
-%{_libdir}/libnvidia-wayland-client.so*
 %{_libdir}/libnvoptix.so*
 %{_libdir}/libcuda.so*
 %{_libdir}/libcudadebugger.so*
@@ -707,18 +847,10 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-encode.so*
 %{_libdir}/libnvidia-gpucomp.so*
 %{_libdir}/libnvidia-fbc.so*
-%{_libdir}/libnvidia-gtk2.so*
-%ifarch %{x86_64}
-%{_libdir}/libnvidia-gtk3.so*
-%endif
 %{_libdir}/vdpau/libvdpau_nvidia.so*
 %{_bindir}/nvidia-bug-report.sh
 %{_bindir}/nvidia-smi
 %{_mandir}/man1/nvidia-smi.1*
-%{_bindir}/nvidia-settings
-%{_mandir}/man1/nvidia-settings.1*
-%{_datadir}/applications/nvidia-settings.desktop
-%{_datadir}/pixmaps/nvidia-settings.png
 %{_libdir}/libnvidia-glvkspirv.so*
 %{_datadir}/nvidia/nvidia-application-profiles-%{version}-rc
 %{_datadir}/nvidia/nvidia-application-profiles-%{version}-key-documentation
@@ -752,7 +884,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %files dkms-kmod
 %{_usrsrc}/%{dkms_name}-%{version}
 
-%files kmod-%{open_dkms_name}-dkms
+%files dkms-kmod-open
 %{_usrsrc}/%{open_dkms_name}-%{version}/common
 %{_usrsrc}/%{open_dkms_name}-%{version}/nvidia*
 %{_usrsrc}/%{open_dkms_name}-%{version}/Kbuild
@@ -761,7 +893,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_usrsrc}/%{open_dkms_name}-%{version}/dkms.conf
 %{_usrsrc}/%{open_dkms_name}-%{version}/*.mk
 
-%files -n nvidia-kmod-source
+%files kmod-open-source
 %{_usrsrc}/%{open_dkms_name}-%{version}/src
 
 %files kmod-headers
@@ -779,3 +911,26 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %license COPYING
 %attr(4755, root, root) %{_bindir}/nvidia-modprobe
 %{_mandir}/man1/nvidia-modprobe.1.*
+
+%files settings
+%license COPYING
+%{_bindir}/%{name}-settings
+%{_metainfodir}/%{name}-settings.appdata.xml
+%{_datadir}/applications/%{name}-settings.desktop
+%{_datadir}/pixmaps/%{name}-settings.png
+%{_libdir}/libnvidia-gtk3.so.%{version}
+%exclude %{_libdir}/libnvidia-gtk2.so.%{version}
+%{_libdir}/libnvidia-gtk2.so.%{version}
+%{_mandir}/man1/%{name}-settings.*
+%{_sysconfdir}/xdg/autostart/%{name}-settings-load.desktop
+
+# upstream not building a so
+
+# %%files libXNVCtrl
+# %%license COPYING
+# %%{_libdir}/%%{_lib}XNVCtrl.so.*
+#
+# %%files libXNVCtrl-devel
+# %%doc doc/NV-CONTROL-API.txt doc/FRAMELOCK.txt
+# %%{_includedir}/NVCtrl
+# %%{_libdir}/%%{_lib}XNVCtrl.so
