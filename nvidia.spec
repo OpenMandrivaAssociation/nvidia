@@ -41,14 +41,13 @@ License:	distributable
 
 Provides:	%{name} = %{version}
 
-Requires:	%{name}-modprobe = %{version}
-Requires:	%{name}-settings = %{version}
-Requires:	%{name}-kmod = %{version}
+BuildRequires:	sed
 
-# Not really, the %%{name}-kmod = %%{EVRD} requirement is enough.
-# But we need to make sure dnf prefers the option most people
-# will want over something like dkms
-#Requires:	%%{name}-kmod-desktop = %%{EVRD}
+Requires:	%{name}-kmod-common = %{version}
+
+%ifarch %{x86_64}
+Requires:	%{name}-32bit = %{version}
+%endif
 
 Requires:	libglvnd-egl
 Requires:	egl-wayland
@@ -109,27 +108,11 @@ Provides:	%{name}-kmod = %{version}
 Provides:	should-restart = system
 
 Requires(post,postun):	sed dracut grub2 kmod
-Requires:	%{name}-kmod-common = %{version}
-Requires:	%{name}-settings = %{version}
-Requires:	%{name} = %{version}
-
-Conflicts:	kernel > %{kversion}
+Requires:	(kernel = %{kversion} if kernel)
 
 %(for i in %{kernels};
 	do
-		echo Requires:	kernel-$i = %{kversion}
-		echo Obsoletes:	%{name}-kernel-modules-$i <= %{version}
-		echo Obsoletes:	%{name}-kernel-modules-$i-rc <= %{version}
-		echo Obsoletes:	%{name}-kernel-modules-$i-gcc <= %{version}
-		echo Obsoletes:	%{name}-kernel-modules-$i-clang <= %{version}
-
 		echo BuildRequires: kernel-$i-devel
-
-		# Just to be on the safe side, it may not be wise
-		# to load clang-built modules into a gcc-built kernel
-		if [[ $i == *"gcc" ]]; then
-			echo BuildRequires: gcc
-		fi
 
 		# Because this service is primarily for non-X11/Wayland use cases
 		# so the kernel doesn't unload the module when not in use
@@ -137,7 +120,17 @@ Conflicts:	kernel > %{kversion}
 		if [[ $i == *"server"* ]]; then
 			echo Requires: %{name}-persistenced = %{version}
 		fi
+
+		# Just to be on the safe side, it may not be wise
+		# to load clang-built modules into a gcc-built kernel
+		if [[ $i == *"gcc" ]]; then
+			echo BuildRequires: gcc
+		fi
 done)
+
+Conflicts:	kmod-nvidia-latest-dkms
+
+ExclusiveArch: x86_64 ppc64le aarch64
 
 %description kmod
 Kernel modules needed by the binary-only nvidia driver
@@ -151,40 +144,20 @@ License:        NVIDIA License
 Summary:        NVIDIA display driver kernel module. **This is an unsupported proprietary driver. Use with caution!
 URL:            http://www.nvidia.com/object/unix.html
 
-# Package is not noarch as it contains pre-compiled binary code
-ExclusiveArch:  %{x86_64} ppc64le %{aarch64}
 Source4:   dkms-%{dkms_name}.conf
 
-BuildRequires:  sed
+Provides:	%{name}-kmod = %{version}
+Provides:	should-restart = system
 
-Provides:       %{name}-kmod = %{version}
+BuildRequires: kernel-devel = %{kversion}
 
-Requires:       %{name}-kmod-common = %{version}
-Requires:       %{name}-kmod-headers = %{version}
-Requires:		%{name} = %{version}
-Requires:       dkms
+Requires:	%{name}-kmod-headers = %{version}
+Requires:	%{name}-kmod-common = %{version}
+Requires:   dkms
 
-%(for i in %{kernels};
-	do
-		echo Requires:	kernel-$i = %{kversion}
-		echo Obsoletes:	%{name}-kernel-modules-$i <= %{version}
-		echo Obsoletes:	%{name}-kernel-modules-$i-rc <= %{version}
-		echo Obsoletes:	%{name}-kernel-modules-$i-gcc <= %{version}
-		echo Obsoletes:	%{name}-kernel-modules-$i-clang <= %{version}
+Conflicts:	kmod-nvidia-latest-dkms
 
-		# Just to be on the safe side, it may not be wise
-		# to load clang-built modules into a gcc-built kernel
-		if [[ $i == *"gcc" ]]; then
-			echo BuildRequires: gcc
-		fi
-
-		# Because this service is primarily for non-X11/Wayland use cases
-		# so the kernel doesn't unload the module when not in use
-		# the persistenced service is only needed in the server kernels
-		if [[ $i == *"server"* ]]; then
-			echo Requires: %{name}-persistenced = %{version}
-		fi
-done)
+ExclusiveArch: x86_64 ppc64le aarch64
 
 %description dkms-kmod
 This package provides the proprietary Nvidia kernel driver modules.
@@ -198,17 +171,19 @@ become available.
 
 Summary:        NVIDIA driver open kernel module flavor
 License: 			NVIDIA and GPL-2
-BuildRequires:  sed
 
-Conflicts:      kmod-nvidia-latest-dkms
+Provides:	%{name}-kmod = %{version}
+Provides:	should-restart = system
 
-Provides:       %{name}-kmod = %{version}
+BuildRequires: kernel-devel = %{kversion}
 
-Requires:       %{name}-kmod-common = %{version}
-Requires:		%{name} = %{version}
-Requires:       dkms
+Requires:	%{name}-kmod-common = %{version}
+Requires:   dkms
+Requires:	nouveau-firmware
 
-Obsoletes:		kmod-%{open_dkms_name}-dkms <= %{version}
+Conflicts:	kmod-nvidia-latest-dkms
+
+ExclusiveArch: x86_64 ppc64le aarch64
 
 %description dkms-kmod-open
 This package provides the open-source Nvidia kernel driver modules.
@@ -242,7 +217,7 @@ NVIDIA header files for precompiled streams
 
 %package kmod-common
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
-License:        NVIDIA Licensefile:///home/nreist/Development/Source/Repos/nvidia-legacy/nvidia-legacy.spec
+License:        NVIDIA License
 URL:            http://www.nvidia.com/object/unix.html
 
 BuildArch:      noarch
@@ -253,7 +228,8 @@ BuildRequires:  systemd-rpm-macros
 
 Provides:       %{name}-kmod-common = %{version}
 
-Requires:       %{name} = %{version}
+Requires:		%{name}-kmod = %{version}
+Requires:		%{name} = %{version}
 
 Obsoletes:      cuda-nvidia-kmod-common <= %{version}
 
@@ -280,7 +256,6 @@ BuildRequires:	m4
 BuildRequires:	systemd
 
 # Requires cuda, but the kmod-common "builds" that
-Requires:		%{name}-kmod-common = %{version}
 Requires:		%{name} = %{version}
 
 %description persistenced
@@ -773,7 +748,7 @@ desktop-file-validate %{buildroot}%{_sysconfdir}/xdg/autostart/%{name}-settings-
 appstream-util validate-relax --nonet %{buildroot}/%{_metainfodir}/%{name}-settings.appdata.xml
 
 %post kmod-common
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=['\''"]/& nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=['\''"]/&nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
 /sbin/depmod -a
 /usr/bin/dracut -f
 %{_sbindir}/update-grub2
