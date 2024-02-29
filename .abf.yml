@@ -3,3 +3,4 @@ sources:
   NVIDIA-Linux-aarch64-550.40.07.run: 542c443d697179d111f3bb663a4c45ca464b16d3
   nvidia-modprobe-550.40.07.tar.gz: f65cef041b72281d3d7603fc961d5adb1f88f62f
   nvidia-persistenced-550.40.07.tar.gz: 85588fda8cf81904769fcbbdd34c8bf58538e112
+  nvidia-settings-550.40.07.tar.gz: 1785d931e3f75a802b68049f37564e00eb414cd3
