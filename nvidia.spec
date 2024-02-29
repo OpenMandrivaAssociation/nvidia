@@ -1,32 +1,32 @@
 %define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |sort -V |tail -n1)
 %define kdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-desktop-devel |sort -V |tail -n1)
 %global debug_package %{nil}
-%global _dracut_conf_d  %{_prefix}/lib/dracut/dracut.conf.d
-%global _modprobe_d     %{_prefix}/lib/modprobe.d/
-%global kernel_source_dir %{_builddir}/%{name}-%{version}/linux-%{kversion}
-%global nvidia_driver_dir %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}
-%global open_dkms_name nvidia-open
-%global open_kmod_source %{_builddir}/%{name}-%{version}/NVIDIA-kernel-module-source
-%global dkms_name nvidia
+%global	_dracut_conf_d	%{_prefix}/lib/dracut/dracut.conf.d
+%global	_modprobe_d		%{_prefix}/lib/modprobe.d/
+%global	kernel_source_dir	%{_builddir}/%{name}-%{version}/linux-%{kversion}
+%global	nvidia_driver_dir	%{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}
+%global	open_dkms_name	nvidia-open
+%global	open_kmod_source 	%{_builddir}/%{name}-%{version}/NVIDIA-kernel-module-source
+%global	dkms_name	nvidia
 
-%global kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
+%global	kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
 
-%global kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
+%global	kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
 
-Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
 Version:	550.40.07
-Release:	3
+Release:	4
 ExclusiveArch:	%{x86_64} %{aarch64}
+Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		http://www.nvidia.com/object/unix.html
 Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
 Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linux-aarch64-%{version}.run
 Source2:	modpackage.template
-Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/nvidia/xorg-nvidia.conf
+Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/%{name}/xorg-nvidia.conf
 
 # nvidia
 %ifarch %{aarch64}
-Patch0:		nvidia-aarch64-fix-build.patch
+Patch0:		%{name}-aarch64-fix-build.patch
 %endif
 
 # nvidia-settings
@@ -62,7 +62,7 @@ BuildRequires:	egl-devel
 BuildRequires:	pkgconfig(gtk+-2.0) > 2.4
 BuildRequires:	pkgconfig(gtk+-3.0)
 # Even if we aren't building for the desktop kernel,
-# this package is needed to determine %{kversion}
+# this package is needed to determine %%{kversion}
 BuildRequires:	kernel-desktop-devel
 
 Requires:	%{name}-kmod-common = %{version}
@@ -93,10 +93,10 @@ Requires:	vulkan-loader
 		fi
 done)
 
-Obsoletes:	nvidia-current <= %{version}
+Obsoletes:	%{name}-current <= %{version}
 
 %description
-This is a binary-only driver for nvidia graphics chips.
+This is a binary-only driver for NVIDIA graphics chips.
 
 It is NOT supported.
 It may WIPE YOUR HARDDISK, SEND ALL YOUR DATA TO YOUR COMPETITORS,
@@ -116,11 +116,11 @@ Summary:	Binary-only 32-bit driver for nvidia graphics chips
 
 Requires:	%{name} = %{version}
 
-Provides:   libGLdispatch0
-Provides:   libGL1
-Provides:   libEGL1
-Provides:   libGLESv2_2
-Provides:   libOpenGL0
+Provides:	libGLdispatch0 >= 1.4.0-1
+Provides:	libGL1 >= 1.4.0-1
+Provides:	libEGL1 >= 1.4.0-1
+Provides:	libGLESv2_2 >= 1.4.0-1
+Provides:	libOpenGL0 >= 1.4.0-1
 
 %description 32bit
 This is a 32-bit binary-only driver for nvidia graphics chips.
@@ -143,11 +143,11 @@ This package should only be used as a last resort.
 # =======================================================================================#
 
 %package dkms-kmod
-License:        NVIDIA License
-Summary:        NVIDIA display driver kernel module. **This is an unsupported proprietary driver. Use with caution!
-URL:            http://www.nvidia.com/object/unix.html
+License:	NVIDIA License
+Summary:	NVIDIA display driver kernel module. **This is an unsupported proprietary driver. Use with caution!
+URL:		http://www.nvidia.com/object/unix.html
 
-Source4:   dkms-%{dkms_name}.conf
+Source4:	dkms-%{dkms_name}.conf
 
 Provides:	%{name}-kmod = %{version}
 Provides:	should-restart = system
@@ -168,8 +168,8 @@ become available.
 # =======================================================================================#
 %package dkms-kmod-open
 
-Summary:        NVIDIA driver open kernel module flavor
-License: 			NVIDIA and GPL-2
+Summary:	NVIDIA driver open kernel module flavor
+License:	NVIDIA and GPL-2
 
 Provides:	%{name}-kmod = %{version}
 Provides:	should-restart = system
@@ -186,22 +186,22 @@ The modules are rebuilt through the DKMS system when a new kernel or modules
 become available.
 
 %package kmod-open-source
-Summary:        NVIDIA open kernel module source files
-BuildArch:		noarch
-AutoReq:        0
+Summary:	NVIDIA open kernel module source files
+BuildArch:	noarch
+AutoReq:	0
 
-Conflicts:      kmod-nvidia-latest-dkms
+Conflicts:	kmod-nvidia-latest-dkms
 
-Obsoletes:		kmod-%{open_dkms_name}-dkms-nvidia-kmod-source <= %{version}
+Obsoletes:	kmod-%{open_dkms_name}-dkms-nvidia-kmod-source <= %{version}
 
 %description  kmod-open-source
 NVIDIA kernel module source files for compiling open flavor of nvidia.o and nvidia-modeset.o kernel modules.
 
 %package kmod-headers
-Summary:        NVIDIA header files for precompiled streams
-AutoReq:        0
+Summary:	NVIDIA header files for precompiled streams
+AutoReq:	0
 
-Conflicts:      kmod-nvidia-latest-dkms
+Conflicts:	kmod-nvidia-latest-dkms
 
 %description kmod-headers
 NVIDIA header files for precompiled streams
@@ -211,20 +211,20 @@ NVIDIA header files for precompiled streams
 # =======================================================================================#
 
 %package kmod-common
-Summary:        Common file for NVIDIA's proprietary driver kernel modules
-License:        NVIDIA License
-URL:            http://www.nvidia.com/object/unix.html
+Summary:	Common file for NVIDIA's proprietary driver kernel modules
+License:	NVIDIA License
+URL:		http://www.nvidia.com/object/unix.html
 
-BuildArch:      noarch
+BuildArch:	noarch
 Source5:	60-nvidia.rules
 Source6:	99-nvidia.conf
 
-Provides:       %{name}-kmod-common = %{version}
+Provides:	%{name}-kmod-common = %{version}
 
-Requires:		%{name}-kmod = %{version}
-Requires:		%{name} = %{version}
+Requires:	%{name}-kmod = %{version}
+Requires:	%{name} = %{version}
 
-Obsoletes:      cuda-nvidia-kmod-common <= %{version}
+Obsoletes:	cuda-nvidia-kmod-common <= %{version}
 
 %description kmod-common
 This package provides the common files required by all NVIDIA kernel module
@@ -235,15 +235,16 @@ package variants.
 # =======================================================================================#
 
 %package persistenced
-Summary:        A daemon to maintain persistent software state in the NVIDIA driver
-License:        GPLv2+
-URL:            https://github.com/NVIDIA/nvidia-persistenced
-Source7:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz#/%{name}-persistenced-%{version}.tar.gz
-Source8:		nvidia-persistenced.service
-Source9:		nvidia-persistenced.conf
+
+Summary:	A daemon to maintain persistent software state in the NVIDIA driver
+License:	GPLv2+
+URL:		https://github.com/NVIDIA/nvidia-persistenced
+Source7:	https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz#/%{name}-persistenced-%{version}.tar.gz
+Source8:	nvidia-persistenced.service
+Source9:	nvidia-persistenced.conf
 
 # Requires cuda, but the kmod-common "builds" that
-Requires:		%{name} = %{version}
+Requires:	%{name} = %{version}
 
 %description persistenced
 The nvidia-persistenced utility is used to enable persistent software state in the NVIDIA
@@ -256,13 +257,12 @@ startup time of new clients in this scenario.
 # =======================================================================================#
 
 %package modprobe
-Summary:        NVIDIA kernel module loader
-License:        GPLv2+
-URL:			https://github.com/NVIDIA/nvidia-modprobe
-ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
-Source10:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz#/%{name}-modprobe-%{version}.tar.gz
+Summary:	NVIDIA kernel module loader
+License:	GPLv2+
+URL:		https://github.com/NVIDIA/nvidia-modprobe
+Source10:	https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz#/%{name}-modprobe-%{version}.tar.gz
 
-Requires:		%{name} = %{version}
+Requires:	%{name} = %{version}
 
 %description modprobe
 This utility is used by user-space NVIDIA driver components to make sure the
@@ -274,15 +274,15 @@ present.
 # =======================================================================================#
 
 %package settings
-Summary:        Configure the NVIDIA graphics driver
-License:		GPLv2+
-Source11:		https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{version}.tar.gz#/%{name}-settings-%{version}.tar.gz
-Source12:		%{name}-settings-load.desktop
-Source13:		%{name}-settings.appdata.xml
+Summary:	Configure the NVIDIA graphics driver
+License:	GPLv2+
+Source11:	https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{version}.tar.gz#/%{name}-settings-%{version}.tar.gz
+Source12:	%{name}-settings-load.desktop
+Source13:	%{name}-settings.appdata.xml
 
-#Requires:		%%{name}-libXNVCtrl = %%{version}
-Requires:		%{name} = %{version}
-Requires:		%{_lib}vdpau1 >= 0.0
+#Requires:	%%{name}-libXNVCtrl = %%{version}
+Requires:	%{name} = %{version}
+Requires:	%{_lib}vdpau1 >= 0.0
 
 %description settings
 The %{name}-settings utility is a tool for configuring the NVIDIA graphics
@@ -295,8 +295,8 @@ This communication is done with the NV-CONTROL X extension.
 # it gets linked statically. Explore enabling this if it gets fixed upstream
 
 # %%package libXNVCtrl
-# Summary:        Library providing the NV-CONTROL API
-# Provides:       libXNVCtrl = %%{EVRD}
+# Summary:	Library providing the NV-CONTROL API
+# Provides:	libXNVCtrl = %%{EVRD}
 #
 # Requires(post):	/sbin/ldconfig
 #
@@ -305,9 +305,9 @@ This communication is done with the NV-CONTROL X extension.
 # NVidia xorg driver. It is required for proper operation of the %%{name}-settings utility.
 #
 # %%package libXNVCtrl-devel
-# Summary:        Development files for libXNVCtrl
-# Requires:       nvidia-libXNVCtrl = %%{EVRD}
-# Requires:       pkgconfig(libX11)
+# Summary:	Development files for libXNVCtrl
+# Requires:	nvidia-libXNVCtrl = %%{EVRD}
+# Requires:	pkgconfig(libX11)
 #
 # %%description libXNVCtrl-devel
 # This devel package contains libraries and header files for
