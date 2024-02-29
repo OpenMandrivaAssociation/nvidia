@@ -14,7 +14,7 @@
 Summary:	Binary-only driver for nvidia graphics chips
 Name:		nvidia
 Version:	550.40.07
-Release:	2
+Release:	3
 ExclusiveArch:	%{x86_64} %{aarch64}
 Url:		http://www.nvidia.com/object/unix.html
 Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
@@ -42,6 +42,24 @@ License:	distributable
 Provides:	%{name} = %{version}
 
 BuildRequires:	sed
+BuildRequires:	pkgconfig(dbus-1)
+BuildRequires:	pkgconfig(jansson)
+BuildRequires:	pkgconfig(vdpau) >= 1.0
+BuildRequires:	pkgconfig(xext)
+BuildRequires:	pkgconfig(xrandr)
+BuildRequires:	pkgconfig(xv)
+BuildRequires:	pkgconfig(appstream-glib)
+BuildRequires:	pkgconfig(libtirpc)
+BuildRequires:	m4
+BuildRequires:	systemd
+BuildRequires:  systemd-rpm-macros
+BuildRequires:	desktop-file-utils
+BuildRequires:	libxxf86vm-devel
+BuildRequires:	libGL-devel
+BuildRequires:	egl-devel
+BuildRequires:	gtk+2 > 2.4
+BuildRequires:	gtk+3
+
 
 Requires:	%{name}-kmod-common = %{version}
 
@@ -52,6 +70,24 @@ Requires:	%{name}-32bit = %{version}
 Requires:	libglvnd-egl
 Requires:	egl-wayland
 Requires:	vulkan-loader
+
+%(for i in %{kernels};
+	do
+		echo BuildRequires: kernel-$i-devel
+
+		# Because this service is primarily for non-X11/Wayland use cases
+		# so the kernel doesn't unload the module when not in use
+		# the persistenced service is only needed in the server kernels
+		if [[ $i == *"server"* ]]; then
+			echo Requires: %{name}-persistenced = %{version}
+		fi
+
+		# Just to be on the safe side, it may not be wise
+		# to load clang-built modules into a gcc-built kernel
+		if [[ $i == *"gcc" ]]; then
+			echo BuildRequires: gcc
+		fi
+done)
 
 Obsoletes:	nvidia-current <= %{version}
 
@@ -110,27 +146,7 @@ Provides:	should-restart = system
 Requires(post,postun):	sed dracut grub2 kmod
 Requires:	(kernel = %{kversion} if kernel)
 
-%(for i in %{kernels};
-	do
-		echo BuildRequires: kernel-$i-devel
-
-		# Because this service is primarily for non-X11/Wayland use cases
-		# so the kernel doesn't unload the module when not in use
-		# the persistenced service is only needed in the server kernels
-		if [[ $i == *"server"* ]]; then
-			echo Requires: %{name}-persistenced = %{version}
-		fi
-
-		# Just to be on the safe side, it may not be wise
-		# to load clang-built modules into a gcc-built kernel
-		if [[ $i == *"gcc" ]]; then
-			echo BuildRequires: gcc
-		fi
-done)
-
 Conflicts:	kmod-nvidia-latest-dkms
-
-ExclusiveArch: x86_64 ppc64le aarch64
 
 %description kmod
 Kernel modules needed by the binary-only nvidia driver
@@ -149,15 +165,11 @@ Source4:   dkms-%{dkms_name}.conf
 Provides:	%{name}-kmod = %{version}
 Provides:	should-restart = system
 
-BuildRequires: kernel-devel = %{kversion}
-
 Requires:	%{name}-kmod-headers = %{version}
 Requires:	%{name}-kmod-common = %{version}
 Requires:   dkms
 
 Conflicts:	kmod-nvidia-latest-dkms
-
-ExclusiveArch: x86_64 ppc64le aarch64
 
 %description dkms-kmod
 This package provides the proprietary Nvidia kernel driver modules.
@@ -175,15 +187,11 @@ License: 			NVIDIA and GPL-2
 Provides:	%{name}-kmod = %{version}
 Provides:	should-restart = system
 
-BuildRequires: kernel-devel = %{kversion}
-
 Requires:	%{name}-kmod-common = %{version}
 Requires:   dkms
 Requires:	nouveau-firmware
 
 Conflicts:	kmod-nvidia-latest-dkms
-
-ExclusiveArch: x86_64 ppc64le aarch64
 
 %description dkms-kmod-open
 This package provides the open-source Nvidia kernel driver modules.
@@ -224,8 +232,6 @@ BuildArch:      noarch
 Source5:	60-nvidia.rules
 Source6:	99-nvidia.conf
 
-BuildRequires:  systemd-rpm-macros
-
 Provides:       %{name}-kmod-common = %{version}
 
 Requires:		%{name}-kmod = %{version}
@@ -245,15 +251,9 @@ package variants.
 Summary:        A daemon to maintain persistent software state in the NVIDIA driver
 License:        GPLv2+
 URL:            https://github.com/NVIDIA/nvidia-persistenced
-ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
 Source7:		https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz#/%{name}-persistenced-%{version}.tar.gz
 Source8:		nvidia-persistenced.service
 Source9:		nvidia-persistenced.conf
-
-BuildRequires:	llvm
-BuildRequires:	pkgconfig(libtirpc)
-BuildRequires:	m4
-BuildRequires:	systemd
 
 # Requires cuda, but the kmod-common "builds" that
 Requires:		%{name} = %{version}
@@ -275,9 +275,6 @@ URL:			https://github.com/NVIDIA/nvidia-modprobe
 ExclusiveArch:  %{ix86} x86_64 ppc64le aarch64
 Source10:		https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz#/%{name}-modprobe-%{version}.tar.gz
 
-BuildRequires:	llvm
-BuildRequires:	m4
-
 Requires:		%{name} = %{version}
 
 %description modprobe
@@ -295,21 +292,6 @@ License:		GPLv2+
 Source11:		https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{version}.tar.gz#/%{name}-settings-%{version}.tar.gz
 Source12:		%{name}-settings-load.desktop
 Source13:		%{name}-settings.appdata.xml
-
-BuildRequires:	desktop-file-utils
-BuildRequires:	pkgconfig(dbus-1)
-BuildRequires:	pkgconfig(jansson)
-BuildRequires:	pkgconfig(vdpau) >= 1.0
-BuildRequires:	pkgconfig(xext)
-BuildRequires:	pkgconfig(xrandr)
-BuildRequires:	pkgconfig(xv)
-BuildRequires:	pkgconfig(appstream-glib)
-BuildRequires:	libxxf86vm-devel
-BuildRequires:	libGL-devel
-BuildRequires:	egl-devel
-BuildRequires:	gtk+2 > 2.4
-BuildRequires:	gtk+3
-BuildRequires:	m4
 
 #Requires:		%%{name}-libXNVCtrl = %%{version}
 Requires:		%{name} = %{version}
