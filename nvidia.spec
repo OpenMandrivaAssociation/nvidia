@@ -1,3 +1,5 @@
+%define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |sort -V |tail -n1)
+%define kdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-desktop-devel |sort -V |tail -n1)
 %global debug_package %{nil}
 %global _dracut_conf_d  %{_prefix}/lib/dracut/dracut.conf.d
 %global _modprobe_d     %{_prefix}/lib/modprobe.d/
@@ -59,7 +61,9 @@ BuildRequires:	libGL-devel
 BuildRequires:	egl-devel
 BuildRequires:	gtk+2 > 2.4
 BuildRequires:	gtk+3
-
+# Even if we aren't building for the desktop kernel,
+# this package is needed to determine %{kversion}
+BuildRequires:	kernel-desktop-devel
 
 Requires:	%{name}-kmod-common = %{version}
 
@@ -133,23 +137,6 @@ installation.
 
 This package should only be used as a last resort.
 %endif
-
-%package kmod
-%define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |sort -V |tail -n1)
-%define kdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-desktop-devel |sort -V |tail -n1)
-Summary:	Kernel modules needed by the binary-only nvidia driver
-Group:		Hardware
-
-Provides:	%{name}-kmod = %{version}
-Provides:	should-restart = system
-
-Requires(post,postun):	sed dracut grub2 kmod
-Requires:	(kernel = %{kversion} if kernel)
-
-Conflicts:	kmod-nvidia-latest-dkms
-
-%description kmod
-Kernel modules needed by the binary-only nvidia driver
 
 # =======================================================================================#
 # dkms-nvidia - modified from https://github.com/NVIDIA/yum-packaging-dkms-nvidia
