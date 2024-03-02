@@ -578,8 +578,11 @@ instx %{_libdir}/libnvidia-ngx.so.%{version}
 instx %{_libdir}/libnvidia-nvvm.so.%{version}
 sl nvidia-nvvm 4
 instx %{_libdir}/libnvidia-opticalflow.so.%{version}
+%ifarch x86_64
 instx %{_libdir}/libnvidia-pkcs11.so.%{version}
+%endif
 instx %{_libdir}/libnvidia-pkcs11-openssl3.so.%{version}
+
 instx %{_libdir}/libnvidia-rtcore.so.%{version}
 instx %{_libdir}/libnvoptix.so.%{version}
 
