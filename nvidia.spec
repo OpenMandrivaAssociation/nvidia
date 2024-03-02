@@ -56,6 +56,7 @@ BuildRequires:	m4
 BuildRequires:	systemd
 BuildRequires:  systemd-rpm-macros
 BuildRequires:	desktop-file-utils
+BuildRequires:	appstream-util
 BuildRequires:	pkgconfig(xxf86vm)
 BuildRequires:	pkgconfig(dri)
 BuildRequires:	egl-devel
