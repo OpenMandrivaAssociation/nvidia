@@ -44,7 +44,7 @@ License:	distributable
 Provides:	%{name} = %{version}
 
 BuildRequires:	sed
-BuildRequires:	appstream_util
+BuildRequires:	appstream-util
 BuildRequires:	pkgconfig(dbus-1)
 BuildRequires:	pkgconfig(jansson)
 BuildRequires:	pkgconfig(vdpau) >= 1.0
