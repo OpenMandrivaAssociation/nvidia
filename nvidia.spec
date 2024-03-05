@@ -55,7 +55,7 @@ BuildRequires:	pkgconfig(appstream-glib)
 BuildRequires:	pkgconfig(libtirpc)
 BuildRequires:	m4
 BuildRequires:	systemd
-BuildRequires:  systemd-rpm-macros
+BuildRequires:	systemd-rpm-macros
 BuildRequires:	desktop-file-utils
 BuildRequires:	appstream-util
 BuildRequires:	pkgconfig(xxf86vm)
@@ -156,7 +156,7 @@ Provides:	should-restart = system
 
 Requires:	%{name}-kmod-headers = %{version}
 Requires:	%{name}-kmod-common = %{version}
-Requires:   dkms
+Requires:	dkms
 
 Conflicts:	kmod-nvidia-latest-dkms
 
@@ -177,8 +177,8 @@ Provides:	%{name}-kmod = %{version}
 Provides:	should-restart = system
 
 Requires:	%{name}-kmod-common = %{version}
-Requires:   dkms
-Requires:	nouveau-firmware
+Requires:	dkms
+Requires:	nvidia-firmware
 
 Conflicts:	kmod-nvidia-latest-dkms
 
@@ -196,7 +196,7 @@ Conflicts:	kmod-nvidia-latest-dkms
 
 Obsoletes:	kmod-%{open_dkms_name}-dkms-nvidia-kmod-source <= %{version}
 
-%description  kmod-open-source
+%description kmod-open-source
 NVIDIA kernel module source files for compiling open flavor of nvidia.o and nvidia-modeset.o kernel modules.
 
 %package kmod-headers
@@ -459,10 +459,10 @@ cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}
 export CFLAGS="%{optflags} -fPIC"
 export LDFLAGS="%{?__global_ldflags}"
 %make DEBUG=1 \
-    NV_USE_BUNDLED_LIBJANSSON=0 \
-    NV_VERBOSE=1 \
-    PREFIX=%{_prefix} \
-    XNVCTRL_LDFLAGS="-L%{_libdir}"
+	NV_USE_BUNDLED_LIBJANSSON=0 \
+	NV_VERBOSE=1 \
+	PREFIX=%{_prefix} \
+	XNVCTRL_LDFLAGS="-L%{_libdir}"
 
 %install
 # dkms kmod open
@@ -693,9 +693,9 @@ cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}
 
 %make_install \
 	DEBUG=1 \
-    NV_USE_BUNDLED_LIBJANSSON=0 \
-    NV_VERBOSE=1 \
-    PREFIX=%{_prefix}
+	NV_USE_BUNDLED_LIBJANSSON=0 \
+	NV_VERBOSE=1 \
+	PREFIX=%{_prefix}
 
 mkdir -p %{buildroot}%{_datadir}/licenses/%{name}-settings/
 cp COPYING %{buildroot}%{_datadir}/licenses/%{name}-settings/COPYING
