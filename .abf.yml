@@ -1,6 +1,6 @@
 sources:
-  NVIDIA-Linux-x86_64-550.40.07.run: be5b15f689bb44ab1f99798bea974915a537e544
-  NVIDIA-Linux-aarch64-550.40.07.run: 542c443d697179d111f3bb663a4c45ca464b16d3
-  nvidia-modprobe-550.40.07.tar.gz: f65cef041b72281d3d7603fc961d5adb1f88f62f
-  nvidia-persistenced-550.40.07.tar.gz: 85588fda8cf81904769fcbbdd34c8bf58538e112
-  nvidia-settings-550.40.07.tar.gz: 1785d931e3f75a802b68049f37564e00eb414cd3
+  NVIDIA-Linux-aarch64-550.54.14.run: 2a83e0c3ceeb195b2c65735be5101341a303ffba
+  NVIDIA-Linux-x86_64-550.54.14.run: 86defe6f5739be80e25c0d9662335ce5ccbd5a1a
+  nvidia-modprobe-550.54.14.tar.gz: 0e2516bc9eac76bc45a58a218b208e24196640db
+  nvidia-persistenced-550.54.14.tar.gz: 0f5b52d44049b0d09ceb9c4c099574a9747ac336
+  nvidia-settings-550.54.14.tar.gz: 81043e485511e4b821bb1ff023885978fb10be5b
