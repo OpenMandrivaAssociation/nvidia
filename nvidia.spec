@@ -580,8 +580,8 @@ sl nvidia-nvvm 4
 instx %{_libdir}/libnvidia-opticalflow.so.%{version}
 %ifarch %{x86_64}
 instx %{_libdir}/libnvidia-pkcs11.so.%{version}
-%endif
 instx %{_libdir}/libnvidia-pkcs11-openssl3.so.%{version}
+%endif
 
 instx %{_libdir}/libnvidia-rtcore.so.%{version}
 instx %{_libdir}/libnvoptix.so.%{version}
@@ -780,8 +780,10 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-ngx.so*
 %{_libdir}/libnvidia-nvvm.so*
 %{_libdir}/libnvidia-opticalflow.so*
+%ifarch %{x86_64}
 %{_libdir}/libnvidia-pkcs11-openssl3.so*
 %{_libdir}/libnvidia-pkcs11.so*
+%endif
 %{_libdir}/libnvidia-rtcore.so*
 %{_libdir}/libnvoptix.so*
 %{_libdir}/libcuda.so*
