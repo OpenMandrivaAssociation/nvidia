@@ -15,7 +15,7 @@
 
 Name:		nvidia
 Version:	550.54.14
-Release:	2
+Release:	3
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		http://www.nvidia.com/object/unix.html
@@ -68,6 +68,11 @@ BuildRequires:	pkgconfig(gtk+-3.0)
 BuildRequires:	kernel-desktop-devel
 
 Requires:	%{name}-kmod-common = %{version}
+Requires:	%{name}-modprobe = %{EVRD}
+Suggests:	%{name}-settings = %{EVRD}
+%(for i in %{kernels}; do
+	echo "Requires:	(%{name}-kmod-$i = %{EVRD} if kernel-$i)"
+done)
 
 %ifarch %{x86_64}
 Requires:	%{name}-32bit = %{version}
