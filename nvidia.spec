@@ -729,13 +729,17 @@ desktop-file-validate %{buildroot}%{_sysconfdir}/xdg/autostart/%{name}-settings-
 appstream-util validate-relax --nonet %{buildroot}/%{_metainfodir}/%{name}-settings.appdata.xml
 
 %post kmod-common
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=['\''"]/&nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
+if ! grep -q nvidia-drm.modeset %{_sysconfdir}/default/grub; then
+	sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=['\''"]/&nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
+fi
 /sbin/depmod -a
 /usr/bin/dracut -f
 %{_sbindir}/update-grub2
 
 %postun kmod-common
-sed -i 's/nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 //g' %{_sysconfdir}/default/grub
+if [ "$1" = "0" ]; then
+	sed -i 's/nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 //g' %{_sysconfdir}/default/grub
+fi
 /sbin/depmod -a
 /usr/bin/dracut -f
 %{_sbindir}/update-grub2
