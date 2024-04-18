@@ -3,10 +3,10 @@
 %global debug_package %{nil}
 %global	_dracut_conf_d	%{_prefix}/lib/dracut/dracut.conf.d
 %global	_modprobe_d		%{_prefix}/lib/modprobe.d/
-%global	kernel_source_dir	%{_builddir}/%{name}-%{version}/linux-%{kversion}
-%global	nvidia_driver_dir	%{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}
+%global	kernel_source_dir	%{_builddir}/%{buildsubdir}-%{_arch}/%{name}-%{version}/linux-%{kversion}
+%global	nvidia_driver_dir	%{_builddir}/%{buildsubdir}-%{_arch}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}
 %global	open_dkms_name	nvidia-open
-%global	open_kmod_source 	%{_builddir}/%{name}-%{version}/NVIDIA-kernel-module-source
+%global	open_kmod_source 	%{_builddir}/%{buildsubdir}-%{_arch}/%{name}-%{version}/NVIDIA-kernel-module-source
 %global	dkms_name	nvidia
 
 %global	kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
@@ -14,8 +14,11 @@
 %global	kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
 
 Name:		nvidia
-Version:	550.67
-Release:	3
+Version:	550.76
+# Sometimes helpers (persistenced, modprobe) don't change and aren't
+# retagged. When possible, helpers_version should be set to %{version}.
+%define helpers_version 550.67
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		http://www.nvidia.com/object/unix.html
@@ -246,7 +249,7 @@ package variants.
 Summary:	A daemon to maintain persistent software state in the NVIDIA driver
 License:	GPLv2+
 URL:		https://github.com/NVIDIA/nvidia-persistenced
-Source7:	https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{version}.tar.gz#/%{name}-persistenced-%{version}.tar.gz
+Source7:	https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-persistenced-%{helpers_version}.tar.gz
 Source8:	nvidia-persistenced.service
 Source9:	nvidia-persistenced.conf
 
@@ -267,7 +270,7 @@ startup time of new clients in this scenario.
 Summary:	NVIDIA kernel module loader
 License:	GPLv2+
 URL:		https://github.com/NVIDIA/nvidia-modprobe
-Source10:	https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{version}.tar.gz#/%{name}-modprobe-%{version}.tar.gz
+Source10:	https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-modprobe-%{helpers_version}.tar.gz
 
 Requires:	%{name} = %{version}
 
@@ -283,7 +286,7 @@ present.
 %package settings
 Summary:	Configure the NVIDIA graphics driver
 License:	GPLv2+
-Source11:	https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{version}.tar.gz#/%{name}-settings-%{version}.tar.gz
+Source11:	https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-settings-%{helpers_version}.tar.gz
 Source12:	%{name}-settings-load.desktop
 Source13:	%{name}-settings.appdata.xml
 
@@ -322,7 +325,6 @@ This communication is done with the NV-CONTROL X extension.
 
 %prep
 %setup -T -c
-
 %ifarch %{x86_64}
 sh %{S:0} --extract-only
 %else
@@ -348,23 +350,23 @@ cp -r %{nvidia_driver_dir}/kernel-open %{open_kmod_source}
 # persistenced
 tar -xf %{S:7} -C %{_builddir}/%{name}-%{version}
 # Remove additional CFLAGS added when enabling DEBUG
-sed -i -e '/+= -O0 -g/d' %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{version}/utils.mk
+sed -i -e '/+= -O0 -g/d' %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{helpers_version}/utils.mk
 
 # modprobe
 tar -xf %{S:10} -C %{_builddir}/%{name}-%{version}
 # Remove additional CFLAGS added when enabling DEBUG
-sed -i '/+= -O0 -g/d' %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{version}/utils.mk
+sed -i '/+= -O0 -g/d' %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{helpers_version}/utils.mk
 
 # settings
 tar -xf %{S:11} -C %{_builddir}/%{name}-%{version}
-cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{helpers_version}
 %autopatch -m 1 -M 4 -p1
 # Remove bundled jansson
-rm -fr %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/src/jansson
+rm -fr %{_builddir}/%{name}-%{version}/nvidia-settings-%{helpers_version}/src/jansson
 # Remove additional CFLAGS added when enabling DEBUG
-sed -i '/+= -O0 -g/d' %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/utils.mk %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/src/libXNVCtrl/utils.mk
+sed -i '/+= -O0 -g/d' %{_builddir}/%{name}-%{version}/nvidia-settings-%{helpers_version}/utils.mk %{_builddir}/%{name}-%{version}/nvidia-settings-%{helpers_version}/src/libXNVCtrl/utils.mk
 # Change all occurrences of destinations in each utils.mk.
-sed -i -e 's|$(PREFIX)/lib|$(PREFIX)/%{_lib}|g' %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/utils.mk %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}/src/libXNVCtrl/utils.mk
+sed -i -e 's|$(PREFIX)/lib|$(PREFIX)/%{_lib}|g' %{_builddir}/%{name}-%{version}/nvidia-settings-%{helpers_version}/utils.mk %{_builddir}/%{name}-%{version}/nvidia-settings-%{helpers_version}/src/libXNVCtrl/utils.mk
 
 %build
 
@@ -440,7 +442,7 @@ for i in %{kernels}; do
 done
 
 # persistenced
-cd %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{helpers_version}
 export CFLAGS="%{optflags} -I%{_includedir}/tirpc"
 export LDFLAGS="%{?__global_ldflags} -ltirpc"
 %make DEBUG=1 \
@@ -450,7 +452,7 @@ export LDFLAGS="%{?__global_ldflags} -ltirpc"
 		STRIP_CMD=true
 
 # modprobe
-cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{helpers_version}
 export CFLAGS="%{optflags} -I%{_includedir}/tirpc"
 export LDFLAGS="%{?__global_ldflags} -ltirpc"
 %make DEBUG=1 \
@@ -460,7 +462,7 @@ export LDFLAGS="%{?__global_ldflags} -ltirpc"
 		STRIP_CMD=true
 
 # settings
-cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{helpers_version}
 export CFLAGS="%{optflags} -fPIC"
 export LDFLAGS="%{?__global_ldflags}"
 %make DEBUG=1 \
@@ -664,7 +666,7 @@ install -p -m 0644 %{S:6} %{buildroot}%{_sysconfdir}/dracut.conf.d/
 install -p -m 644 %{S:5} %{buildroot}%{_udevrulesdir}
 
 # persistenced
-cd %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{helpers_version}
 %make_install \
 	NV_VERBOSE=1 \
 	PREFIX=%{_prefix} \
@@ -678,7 +680,7 @@ install -p -m 644 -D %{S:8} %{buildroot}%{_unitdir}/nvidia-persistenced.service
 install -p -m 644 -D %{S:9} %{buildroot}%{_prefix}/lib/sysusers.d/nvidia-persistenced.conf
 
 # modprobe
-cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{helpers_version}
 %make_install \
 	NV_VERBOSE=1 \
 	PREFIX=%{_prefix} \
@@ -688,7 +690,7 @@ mkdir -p %{buildroot}%{_datadir}/licenses/%{name}-modprobe
 cp COPYING %{buildroot}%{_datadir}/licenses/%{name}-modprobe/COPYING
 
 # settings
-cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{version}
+cd %{_builddir}/%{name}-%{version}/nvidia-settings-%{helpers_version}
 
 # devel package not currently building into a so
 
@@ -874,9 +876,9 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_metainfodir}/%{name}-settings.appdata.xml
 %{_datadir}/applications/%{name}-settings.desktop
 %{_datadir}/pixmaps/%{name}-settings.png
-%{_libdir}/libnvidia-gtk3.so.%{version}
-%exclude %{_libdir}/libnvidia-gtk2.so.%{version}
-%{_libdir}/libnvidia-gtk2.so.%{version}
+%{_libdir}/libnvidia-gtk3.so.%{helpers_version}
+%exclude %{_libdir}/libnvidia-gtk2.so.%{helpers_version}
+%{_libdir}/libnvidia-gtk2.so.%{helpers_version}
 %{_mandir}/man1/%{name}-settings.*
 %{_sysconfdir}/xdg/autostart/%{name}-settings-load.desktop
 

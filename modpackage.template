@@ -8,7 +8,6 @@ Conflicts:	kernel-@TYPE@ > @KV@
 Group:		Hardware
 Provides:	should-restart = system
 Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-@TYPE@-devel
 
 %description kmod-@TYPE@
 Kernel modules needed by the binary-only nvidia driver for kernel @TYPE@ @KV@
@@ -26,7 +25,6 @@ Conflicts:	kernel-@TYPE@ > @KV@
 Group:		Hardware
 Provides:	should-restart = system
 Requires(post,postun):	sed dracut grub2 kmod
-BuildRequires:	kernel-@TYPE@-devel
 
 %description kmod-open-@TYPE@
 Open kernel modules needed by the binary-only nvidia driver for kernel @TYPE@ @KV@
