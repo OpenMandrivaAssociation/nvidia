@@ -14,10 +14,10 @@
 %global	kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
 
 Name:		nvidia
-Version:	550.76
+Version:	550.78
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
-%define helpers_version 550.67
+%define helpers_version %{version}
 Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
