@@ -3,10 +3,10 @@
 %global debug_package %{nil}
 %global	_dracut_conf_d	%{_prefix}/lib/dracut/dracut.conf.d
 %global	_modprobe_d		%{_prefix}/lib/modprobe.d/
-%global	kernel_source_dir	%{_builddir}/%{buildsubdir}-%{_arch}/%{name}-%{version}/linux-%{kversion}
-%global	nvidia_driver_dir	%{_builddir}/%{buildsubdir}-%{_arch}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}
+%global	kernel_source_dir	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/linux-%{kversion}
+%global	nvidia_driver_dir	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}
 %global	open_dkms_name	nvidia-open
-%global	open_kmod_source 	%{_builddir}/%{buildsubdir}-%{_arch}/%{name}-%{version}/NVIDIA-kernel-module-source
+%global	open_kmod_source 	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/NVIDIA-kernel-module-source
 %global	dkms_name	nvidia
 
 %global	kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
