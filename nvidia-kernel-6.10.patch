@@ -1,0 +1,66 @@
+diff -up NVIDIA-Linux-x86_64-550.78/kernel-open/nvidia/os-mlock.c.omv~ NVIDIA-Linux-x86_64-550.78/kernel-open/nvidia/os-mlock.c
+--- NVIDIA-Linux-x86_64-550.78/kernel-open/nvidia/os-mlock.c.omv~	2024-05-31 04:07:05.148392927 +0200
++++ NVIDIA-Linux-x86_64-550.78/kernel-open/nvidia/os-mlock.c	2024-05-31 04:09:46.722091133 +0200
+@@ -36,11 +36,29 @@ static inline int nv_follow_pfn(struct v
+                                 unsigned long address,
+                                 unsigned long *pfn)
+ {
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0)
+ #if defined(NV_UNSAFE_FOLLOW_PFN_PRESENT)
+     return unsafe_follow_pfn(vma, address, pfn);
+ #else
+     return follow_pfn(vma, address, pfn);
+ #endif
++#else
++    int status = 0;
++    spinlock_t *ptl;
++    pte_t *ptep;
++
++    if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
++        return status;
++
++    status = follow_pte(vma, address, &ptep, &ptl);
++    if (status)
++        return status;
++    *pfn = pte_pfn(ptep_get(ptep));
++
++    // The lock is acquired inside follow_pte()
++    pte_unmap_unlock(ptep, ptl);
++    return 0;
++#endif
+ }
+ 
+ /*!
+diff -up NVIDIA-Linux-x86_64-550.78/kernel/nvidia/os-mlock.c.omv~ NVIDIA-Linux-x86_64-550.78/kernel/nvidia/os-mlock.c
+--- NVIDIA-Linux-x86_64-550.78/kernel/nvidia/os-mlock.c.omv~	2024-05-31 04:06:10.151818007 +0200
++++ NVIDIA-Linux-x86_64-550.78/kernel/nvidia/os-mlock.c	2024-05-31 04:09:29.137905735 +0200
+@@ -36,11 +36,29 @@ static inline int nv_follow_pfn(struct v
+                                 unsigned long address,
+                                 unsigned long *pfn)
+ {
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0)
+ #if defined(NV_UNSAFE_FOLLOW_PFN_PRESENT)
+     return unsafe_follow_pfn(vma, address, pfn);
+ #else
+     return follow_pfn(vma, address, pfn);
+ #endif
++#else
++    int status = 0;
++    spinlock_t *ptl;
++    pte_t *ptep;
++
++    if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
++        return status;
++
++    status = follow_pte(vma, address, &ptep, &ptl);
++    if (status)
++        return status;
++    *pfn = pte_pfn(ptep_get(ptep));
++
++    // The lock is acquired inside follow_pte()
++    pte_unmap_unlock(ptep, ptl);
++    return 0;
++#endif
+ }
+ 
+ /*!

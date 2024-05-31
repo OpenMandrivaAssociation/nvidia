@@ -40,6 +40,7 @@ Patch1:		%{name}-settings-desktop.patch
 #Patch3:		%%{name}-settings-libXNVCtrl.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
+Patch10:	nvidia-kernel-6.10.patch
 
 Group:		Hardware
 License:	distributable
