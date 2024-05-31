@@ -12,6 +12,10 @@
 %global	kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
 
 %global	kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
+# Sometimes RC kernels restrict previously exported symbols to EXPORT_SYMBOL_GPL
+# When that happens, the closed kernel modules frequently won't compile anymore,
+# but we can still build the open versions
+%global rc_openonly 1
 
 Name:		nvidia
 Version:	550.78
@@ -406,14 +410,20 @@ for i in %{kernels}; do
 	#
 	# Compile kernel modules
 	#
-	if echo $i |grep -q gcc; then
-		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} CC=gcc CXX=g++
-	else
-		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} IGNORE_CC_MISMATCH=1
-	fi
+%if %{rc_openonly}
+	if ! echo $i |grep -q ^rc; then
+%endif
+		if echo $i |grep -q gcc; then
+			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} CC=gcc CXX=g++
+		else
+			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} IGNORE_CC_MISMATCH=1
+		fi
 
-	mkdir -p %{_builddir}/%{name}-%{version}/modules-$i
-	mv *.ko %{_builddir}/%{name}-%{version}/modules-$i
+		mkdir -p %{_builddir}/%{name}-%{version}/modules-$i
+		mv *.ko %{_builddir}/%{name}-%{version}/modules-$i
+%if %{rc_openonly}
+	fi
+%endif
 
 	cd %{nvidia_driver_dir}/kernel-open
 	cp -r /usr/src/linux-$KD %{kernel_source_dir}-$i
@@ -633,19 +643,25 @@ cp -r %{nvidia_driver_dir}/html %{buildroot}%{_docdir}/%{name}
 
 # Kernel modules
 for i in %{kernels}; do
-	KD=$(rpm -q --qf "%%{VERSION}-$i-%%{RELEASE}%%{DISTTAG}\n" kernel-${i}-devel |sort -V |tail -n1)
-	if echo $i |grep -q rc; then
-		KD=$(echo $KD |sed -e 's,rc-,,g')
+%if %{rc_openonly}
+	if ! echo $i |grep -q ^rc; then
+%endif
+		KD=$(rpm -q --qf "%%{VERSION}-$i-%%{RELEASE}%%{DISTTAG}\n" kernel-${i}-devel |sort -V |tail -n1)
+		if echo $i |grep -q rc; then
+			KD=$(echo $KD |sed -e 's,rc-,,g')
+		fi
+		mkdir -p %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open
+		mv ../modules-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia/
+		mv ../modules-open-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open/
+
+		# And create the package...
+		K=$(echo $i |sed -e 's,-,_,g')
+		KV=$(rpm -q --qf "%%{VERSION}-%%{RELEASE}\n" kernel-${i}-devel |sort -V |tail -n1 |sed -e 's,-rc,,')
+
+		sed -e "s,@TYPE@,$i,g;s,@KV@,$KV,g;s,@KD@,$KD,g;s,@REL@,%{release}_$(echo $KV |sed -e 's,-,_,g'),g" %{S:2} >%{specpartsdir}/$i.specpart
+%if %{rc_openonly}
 	fi
-	mkdir -p %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open
-	mv ../modules-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia/
-	mv ../modules-open-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open/
-
-	# And create the package...
-	K=$(echo $i |sed -e 's,-,_,g')
-	KV=$(rpm -q --qf "%%{VERSION}-%%{RELEASE}\n" kernel-${i}-devel |sort -V |tail -n1 |sed -e 's,-rc,,')
-
-	sed -e "s,@TYPE@,$i,g;s,@KV@,$KV,g;s,@KD@,$KD,g;s,@REL@,%{release}_$(echo $KV |sed -e 's,-,_,g'),g" %{S:2} >%{specpartsdir}/$i.specpart
+%endif
 done
 
 # dkms-kmod
