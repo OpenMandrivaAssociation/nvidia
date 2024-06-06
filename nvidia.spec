@@ -15,14 +15,14 @@
 # Sometimes RC kernels restrict previously exported symbols to EXPORT_SYMBOL_GPL
 # When that happens, the closed kernel modules frequently won't compile anymore,
 # but we can still build the open versions
-%global rc_openonly 1
+%global rc_openonly 0
 
 Name:		nvidia
-Version:	550.78
+Version:	550.90.07
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
-Release:	7
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		http://www.nvidia.com/object/unix.html
@@ -44,7 +44,7 @@ Patch1:		%{name}-settings-desktop.patch
 #Patch3:		%%{name}-settings-libXNVCtrl.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
-Patch10:	nvidia-kernel-6.10.patch
+#Patch10:	nvidia-kernel-6.10.patch
 
 Group:		Hardware
 License:	distributable
