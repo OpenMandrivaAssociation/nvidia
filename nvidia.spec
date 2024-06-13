@@ -32,9 +32,6 @@ Source2:	modpackage.template
 Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/%{name}/xorg-nvidia.conf
 
 # nvidia
-%ifarch %{aarch64}
-Patch0:		%{name}-aarch64-fix-build.patch
-%endif
 
 # nvidia-settings
 Patch1:		%{name}-settings-desktop.patch
@@ -339,10 +336,6 @@ sh %{S:1} --extract-only
 %endif
 
 cd %{nvidia_driver_dir}
-%ifarch %{aarch64}
-%autopatch 0 -p1
-%endif
-
 %autopatch -m 5 -p1
 
 # dkms kmod - closed and open
