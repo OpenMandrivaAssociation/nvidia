@@ -3,13 +3,8 @@
 %global debug_package %{nil}
 %global	_dracut_conf_d	%{_prefix}/lib/dracut/dracut.conf.d
 %global	_modprobe_d		%{_prefix}/lib/modprobe.d/
-%global	kernel_source_dir	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/linux-%{kversion}
-%global	nvidia_driver_dir	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}
 %global	open_dkms_name	nvidia-open
-%global	open_kmod_source 	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/NVIDIA-kernel-module-source
 %global	dkms_name	nvidia
-
-%global	kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{version}/
 
 %global	kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
 # Sometimes RC kernels restrict previously exported symbols to EXPORT_SYMBOL_GPL
@@ -18,18 +13,30 @@
 %global rc_openonly 0
 
 Name:		nvidia
-Version:	555.52.04
+Version:	555.58
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
-Release:	3
+# Sometimes they release aarch64 late -- usually should be %{version}
+%define aarch64version 555.52.04
+%ifarch %{aarch64}
+%define ver %{aarch64version}
+%else
+%define ver %{version}
+%endif
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		http://www.nvidia.com/object/unix.html
-Source0:	http://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
-Source1:	http://download.nvidia.com/XFree86/Linux-aarch64/%{version}/NVIDIA-Linux-aarch64-%{version}.run
+Source0:	http://us.download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
+Source1:	http://us.download.nvidia.com/XFree86/Linux-aarch64/%{aarch64version}/NVIDIA-Linux-aarch64-%{aarch64version}.run
 Source2:	modpackage.template
 Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/%{name}/xorg-nvidia.conf
+
+%global	kernel_source_dir	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/linux-%{kversion}
+%global	nvidia_driver_dir	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{ver}
+%global	open_kmod_source 	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/NVIDIA-kernel-module-source
+%global	kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{ver}/
 
 # nvidia
 
