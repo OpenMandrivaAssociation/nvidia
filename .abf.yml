@@ -1,6 +1,6 @@
 sources:
-  NVIDIA-Linux-x86_64-555.58.run: 2244d7f5725ed89eaf7ca22bea6b77307d981377
-  NVIDIA-Linux-aarch64-555.58.run: 39b98c8bf398efc0504db0aac0f5b11ecc7067f1
-  nvidia-modprobe-555.58.tar.gz: 8d2b3ad702b143288d7f288fc891e41b1af2e343
-  nvidia-persistenced-555.58.tar.gz: c5a7cc36f33a231e74428be73a8b3ddddb8d9767
-  nvidia-settings-555.58.tar.gz: 6d279a44e827c8535d760081097bf7d9667f44ae
+  NVIDIA-Linux-aarch64-555.58.02.run: 88e186ccbbcfb5df1abab11b3c1cd47ccbc37574
+  NVIDIA-Linux-x86_64-555.58.02.run: 13cdcf1194a7544f4460e94fb2efcea90e6f848a
+  nvidia-modprobe-555.58.02.tar.gz: 987c571ac72a00a686bdb201a68ea610775a0afc
+  nvidia-persistenced-555.58.02.tar.gz: 3577f2480a12a7b61c5ec806ac34c54e38e9fa05
+  nvidia-settings-555.58.02.tar.gz: f9e90bc07c189d00c8a17e90126aacf3ee4f9c41

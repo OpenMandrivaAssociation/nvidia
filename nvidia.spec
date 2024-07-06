@@ -13,7 +13,7 @@
 %global rc_openonly 0
 
 Name:		nvidia
-Version:	555.58
+Version:	555.58.02
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -24,7 +24,7 @@ Version:	555.58
 %else
 %define ver %{version}
 %endif
-Release:	2
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		http://www.nvidia.com/object/unix.html
@@ -33,9 +33,9 @@ Source1:	https://us.download.nvidia.com/XFree86/aarch64/%{ver}/NVIDIA-Linux-aarc
 Source2:	modpackage.template
 Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/%{name}/xorg-nvidia.conf
 
-%global	kernel_source_dir	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/linux-%{kversion}
-%global	nvidia_driver_dir	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{ver}
-%global	open_kmod_source 	%{_builddir}/%{buildsubdir}-build/%{name}-%{version}/NVIDIA-kernel-module-source
+%global	kernel_source_dir	%{_builddir}/%{name}-%{version}/linux-%{kversion}
+%global	nvidia_driver_dir	%{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{ver}
+%global	open_kmod_source 	%{_builddir}/%{name}-%{version}/NVIDIA-kernel-module-source
 %global	kmod_o_dir		%{_libdir}/nvidia/%{_arch}/%{ver}/
 
 # nvidia
