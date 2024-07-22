@@ -24,7 +24,7 @@ Version:	555.58.02
 %else
 %define ver %{version}
 %endif
-Release:	2
+Release:	3
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		http://www.nvidia.com/object/unix.html
@@ -605,8 +605,8 @@ instx %{_libdir}/libnvidia-rtcore.so.%{version}
 instx %{_libdir}/libnvoptix.so.%{version}
 
 # Firmware
-mkdir -p %{buildroot}%{_prefix}/lib
-cp -a firmware %{buildroot}%{_prefix}/lib
+mkdir -p %{buildroot}%{_prefix}/lib/firmware/nvidia
+cp -a firmware %{buildroot}%{_prefix}/lib/firmware/nvidia/%{version}
 
 # VDPAU
 instx %{_libdir}/vdpau/libvdpau_nvidia.so.%{version}
@@ -764,7 +764,7 @@ fi
 %files kmod-common
 %{_sysconfdir}/dracut.conf.d/99-nvidia.conf
 %{_udevrulesdir}/60-nvidia.rules
-%{_prefix}/lib/firmware/*
+%{_prefix}/lib/firmware/nvidia/%{version}
 
 %post dkms-kmod
 dkms add -m %{dkms_name}-v %{version} || :
