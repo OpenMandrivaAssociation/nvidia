@@ -24,7 +24,7 @@ Version:	555.58.02
 %else
 %define ver %{version}
 %endif
-Release:	3
+Release:	4
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		http://www.nvidia.com/object/unix.html
