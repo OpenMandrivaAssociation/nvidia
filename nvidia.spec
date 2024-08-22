@@ -75,6 +75,7 @@ BuildRequires:	pkgconfig(dri)
 BuildRequires:	egl-devel
 BuildRequires:	pkgconfig(gtk+-2.0) > 2.4
 BuildRequires:	pkgconfig(gtk+-3.0)
+BuildRequires:	cmake(VulkanHeaders)
 # Even if we aren't building for the desktop kernel,
 # this package is needed to determine %%{kversion}
 BuildRequires:	kernel-desktop-devel
