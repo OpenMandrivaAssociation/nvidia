@@ -27,7 +27,7 @@ Version:	560.35.03
 Release:	6
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
-Url:		http://www.nvidia.com/object/unix.html
+Url:		https://www.nvidia.com/object/unix.html
 Source0:	http://us.download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
 Source1:	https://us.download.nvidia.com/XFree86/aarch64/%{ver}/NVIDIA-Linux-aarch64-%{ver}.run
 Source2:	modpackage.template
@@ -165,7 +165,7 @@ This package should only be used as a last resort.
 %package dkms-kmod
 License:	NVIDIA License
 Summary:	NVIDIA display driver kernel module. **This is an unsupported proprietary driver. Use with caution!
-URL:		http://www.nvidia.com/object/unix.html
+URL:		https://www.nvidia.com/object/unix.html
 
 Source4:	dkms-%{dkms_name}.conf
 
@@ -233,7 +233,7 @@ NVIDIA header files for precompiled streams
 %package kmod-common
 Summary:	Common file for NVIDIA's proprietary driver kernel modules
 License:	NVIDIA License
-URL:		http://www.nvidia.com/object/unix.html
+URL:		https://www.nvidia.com/object/unix.html
 
 BuildArch:	noarch
 Source5:	60-nvidia.rules
