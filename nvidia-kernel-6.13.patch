@@ -1,0 +1,20 @@
+diff -up NVIDIA-Linux-x86_64-560.35.03/kernel-open/nvidia/internal_crypt_lib.h.omv~ NVIDIA-Linux-x86_64-560.35.03/kernel-open/nvidia/internal_crypt_lib.h
+--- NVIDIA-Linux-x86_64-560.35.03/kernel-open/nvidia/internal_crypt_lib.h.omv~	2024-12-03 17:03:29.670620008 +0100
++++ NVIDIA-Linux-x86_64-560.35.03/kernel-open/nvidia/internal_crypt_lib.h	2024-12-03 17:04:31.401380067 +0100
+@@ -36,6 +36,7 @@
+ #include <linux/limits.h>
+ #include <linux/random.h>
+ #include <linux/string.h>
++#include <linux/version.h>
+ 
+ // Check if ECDH/ECDSA are there, on some platforms they might not be...
+ #ifndef AUTOCONF_INCLUDED
+@@ -64,7 +65,7 @@
+  * old or even just user disabled. If we should use LKCA, include headers, else
+  * define stubs to return errors.
+  */
+-#if defined(NV_CRYPTO_PRESENT) && defined (NV_CONFIG_CRYPTO_PRESENT)
++#if defined(NV_CRYPTO_PRESENT) && defined (NV_CONFIG_CRYPTO_PRESENT) && LINUX_VERSION_CODE < KERNEL_VERSION(6, 13, 0) /* 6.13 drops crypto_akcipher_verify */
+ #define USE_LKCA 1
+ #endif
+ 

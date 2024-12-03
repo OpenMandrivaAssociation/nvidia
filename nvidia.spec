@@ -24,7 +24,7 @@ Version:	560.35.03
 %else
 %define ver %{version}
 %endif
-Release:	10
+Release:	11
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -49,6 +49,7 @@ Patch1:		%{name}-settings-desktop.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
 Patch10:	nvidia-kernel-6.12.patch
+Patch11:	nvidia-kernel-6.13.patch
 
 Group:		Hardware
 License:	distributable
@@ -415,9 +416,9 @@ for i in %{kernels}; do
 	if ! echo $i |grep -q ^rc; then
 %endif
 		if echo $i |grep -q gcc; then
-			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} CC=gcc CXX=g++
+			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} src=$(pwd) CC=gcc CXX=g++
 		else
-			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} IGNORE_CC_MISMATCH=1
+			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} src=$(pwd) IGNORE_CC_MISMATCH=1
 		fi
 
 		mkdir -p %{_builddir}/%{name}-%{version}/modules-$i
@@ -444,9 +445,9 @@ for i in %{kernels}; do
 	# Compile kernel modules
 	#
 	if echo $i |grep -q gcc; then
-		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} CC=gcc CXX=g++
+		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} src=$(pwd) CC=gcc CXX=g++
 	else
-		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} IGNORE_CC_MISMATCH=1
+		%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} src=$(pwd) IGNORE_CC_MISMATCH=1
 	fi
 
 	mkdir -p %{_builddir}/%{name}-%{version}/modules-open-$i
