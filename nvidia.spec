@@ -13,7 +13,7 @@
 %global rc_openonly 0
 
 Name:		nvidia
-Version:	560.35.03
+Version:	565.77
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -24,7 +24,7 @@ Version:	560.35.03
 %else
 %define ver %{version}
 %endif
-Release:	11
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -48,7 +48,7 @@ Patch1:		%{name}-settings-desktop.patch
 #Patch3:		%%{name}-settings-libXNVCtrl.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
-Patch10:	nvidia-kernel-6.12.patch
+#Patch10:	nvidia-kernel-6.12.patch
 Patch11:	nvidia-kernel-6.13.patch
 
 Group:		Hardware
