@@ -18,3 +18,34 @@ diff -up NVIDIA-Linux-x86_64-560.35.03/kernel-open/nvidia/internal_crypt_lib.h.o
  #define USE_LKCA 1
  #endif
  
+diff -up NVIDIA-Linux-x86_64-565.77/kernel-open/nvidia/nv.c.omv~ NVIDIA-Linux-x86_64-565.77/kernel-open/nvidia/nv.c
+--- NVIDIA-Linux-x86_64-565.77/kernel-open/nvidia/nv.c.omv~	2024-12-24 04:54:27.460258101 +0100
++++ NVIDIA-Linux-x86_64-565.77/kernel-open/nvidia/nv.c	2024-12-24 04:54:43.680389194 +0100
+@@ -127,7 +127,10 @@ MODULE_ALIAS_CHARDEV_MAJOR(NV_MAJOR_DEVI
+  * DMA_BUF namespace is added by commit id 16b0314aa746
+  * ("dma-buf: move dma-buf symbols into the DMA_BUF module namespace") in 5.16
+  */
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 13, 0)
+-MODULE_IMPORT_NS(DMA_BUF);
++#else
++MODULE_IMPORT_NS("DMA_BUF");
++#endif
+ #endif  // defined(MODULE_IMPORT_NS)
+ 
+ const NvBool nv_is_rm_firmware_supported_os = NV_TRUE;
+diff -up NVIDIA-Linux-x86_64-565.77/kernel-open/nvidia/nv-dmabuf.c.omv~ NVIDIA-Linux-x86_64-565.77/kernel-open/nvidia/nv-dmabuf.c
+--- NVIDIA-Linux-x86_64-565.77/kernel-open/nvidia/nv-dmabuf.c.omv~	2024-12-24 15:58:52.309422060 +0100
++++ NVIDIA-Linux-x86_64-565.77/kernel-open/nvidia/nv-dmabuf.c	2024-12-24 15:59:04.829688547 +0100
+@@ -23,6 +23,12 @@
+ #include <linux/dma-buf.h>
+ #include "nv-dmabuf.h"
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 13, 0)
++MODULE_IMPORT_NS(DMA_BUF);
++#else
++MODULE_IMPORT_NS("DMA_BUF");
++#endif
++
+ #if defined(CONFIG_DMA_SHARED_BUFFER)
+ 
+ typedef struct nv_dma_buf_mem_handle
