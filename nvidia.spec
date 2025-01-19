@@ -7,6 +7,7 @@
 %global	dkms_name	nvidia
 
 %global	kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
+
 # Sometimes RC kernels restrict previously exported symbols to EXPORT_SYMBOL_GPL
 # When that happens, the closed kernel modules frequently won't compile anymore,
 # but we can still build the open versions
@@ -24,7 +25,7 @@ Version:	565.77
 %else
 %define ver %{version}
 %endif
-Release:	3
+Release:	4
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -49,7 +50,8 @@ Patch1:		%{name}-settings-desktop.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
 #Patch10:	nvidia-kernel-6.12.patch
-Patch11:	nvidia-kernel-6.13.patch
+#Patch11:	nvidia-kernel-6.13.patch
+#Patch12:  nvidia_drm-kernel-6.12.patch
 
 Group:		Hardware
 License:	distributable
@@ -260,7 +262,7 @@ package variants.
 Summary:	A daemon to maintain persistent software state in the NVIDIA driver
 License:	GPLv2+
 URL:		https://github.com/NVIDIA/nvidia-persistenced
-Source7:	https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{helpers_version}.tar.bz2#/%{name}-persistenced-%{helpers_version}.tar.bz2
+Source7:	https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-persistenced-%{helpers_version}.tar.gz
 Source8:	nvidia-persistenced.service
 Source9:	nvidia-persistenced.conf
 
@@ -281,7 +283,7 @@ startup time of new clients in this scenario.
 Summary:	NVIDIA kernel module loader
 License:	GPLv2+
 URL:		https://github.com/NVIDIA/nvidia-modprobe
-Source10:	https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{helpers_version}.tar.bz2#/%{name}-modprobe-%{helpers_version}.tar.bz2
+Source10:	https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-modprobe-%{helpers_version}.tar.gz
 
 Requires:	%{name} = %{version}
 
@@ -297,7 +299,7 @@ present.
 %package settings
 Summary:	Configure the NVIDIA graphics driver
 License:	GPLv2+
-Source11:	https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{helpers_version}.tar.bz2#/%{name}-settings-%{helpers_version}.tar.bz2
+Source11:	https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-settings-%{helpers_version}.tar.gz
 Source12:	%{name}-settings-load.desktop
 Source13:	%{name}-settings.appdata.xml
 
