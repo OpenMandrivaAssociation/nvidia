@@ -25,7 +25,7 @@ Version:	565.77
 %else
 %define ver %{version}
 %endif
-Release:	4
+Release:	5
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -569,6 +569,10 @@ instx %{_libdir}/libnvcuvid.so.%{version}
 sl nvcuvid 1
 instx %{_libdir}/libnvidia-ml.so.%{version}
 sl nvidia-ml 1
+
+mkdir -p %{buildroot}%{_mandir}/man1/
+install -p -m 0644 %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}/nvidia-cuda-mps-control*.gz %{buildroot}%{_mandir}/man1/
+
 # CUDA?
 instx %{_libdir}/libnvidia-ptxjitcompiler.so.%{version}
 sl nvidia-ptxjitcompiler 1
@@ -625,6 +629,11 @@ done
 instx %{_bindir}/nvidia-bug-report.sh
 instx %{_bindir}/nvidia-smi
 inst %{_mandir}/man1/nvidia-smi.1
+instx %{_bindir}/nvidia-debugdump
+instx %{_bindir}/nvidia-cuda-mps-control
+instx %{_bindir}/nvidia-cuda-mps-server
+instx %{_bindir}/nvidia-ngx-updater
+instx %{_bindir}/nvidia-powerd
 
 # glvk
 instx %{_libdir}/libnvidia-glvkspirv.so.%{version}
@@ -700,6 +709,10 @@ mkdir -p %{buildroot}%{_sharedstatedir}/nvidia-persistenced
 install -p -m 644 -D %{S:8} %{buildroot}%{_unitdir}/nvidia-persistenced.service
 install -p -m 644 -D %{S:9} %{buildroot}%{_prefix}/lib/sysusers.d/nvidia-persistenced.conf
 
+install -p -m 0644 %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}/systemd/system/*.service %{buildroot}%{_unitdir}/
+install -p -m 0755 %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}/systemd/nvidia-sleep.sh %{buildroot}%{_bindir}/
+install -p -m 0755 -D %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}/systemd/system-sleep/nvidia %{buildroot}%{_systemd_util_dir}/system-sleep/nvidia
+install -p -m 0644 -D %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}/nvidia-dbus.conf %{buildroot}%{_datadir}/dbus-1/system.d/nvidia-dbus.conf
 # modprobe
 cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{helpers_version}
 %make_install \
@@ -799,6 +812,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_datadir}/vulkan/icd.d/nvidia_icd.json
 %{_libdir}/libnvidia-glcore.so*
 %{_datadir}/glvnd/egl_vendor.d/10_nvidia.json
+%{_datadir}/dbus-1/system.d/nvidia-dbus.conf
 %{_libdir}/xorg/modules/nvidia/extensions/libglxserver_nvidia.so*
 %{_libdir}/libGLX_nvidia.so*
 %{_libdir}/libEGL_nvidia.so*
@@ -833,11 +847,23 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/vdpau/libvdpau_nvidia.so*
 %{_bindir}/nvidia-bug-report.sh
 %{_bindir}/nvidia-smi
+%{_bindir}/nvidia-cuda-mps-control
+%{_bindir}/nvidia-cuda-mps-server
+%{_bindir}/nvidia-debugdump
+%{_bindir}/nvidia-ngx-updater
 %{_mandir}/man1/nvidia-smi.1*
+%{_mandir}/man1/nvidia-cuda-mps-control.1.*
 %{_libdir}/libnvidia-glvkspirv.so*
 %{_datadir}/nvidia/nvidia-application-profiles-%{version}-rc
 %{_datadir}/nvidia/nvidia-application-profiles-%{version}-key-documentation
 %{_datadir}/X11/xorg.conf.d/20-nvidia.conf
+%{_systemd_util_dir}/system-sleep/nvidia
+%{_unitdir}/nvidia-hibernate.service
+%{_unitdir}/nvidia-powerd.service
+%{_unitdir}/nvidia-resume.service
+%{_unitdir}/nvidia-suspend.service
+%{_bindir}/nvidia-powerd
+%{_bindir}/nvidia-sleep.sh
 
 %ifarch %{x86_64}
 %files 32bit
