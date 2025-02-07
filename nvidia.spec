@@ -867,6 +867,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_unitdir}/nvidia-powerd.service
 %{_unitdir}/nvidia-resume.service
 %{_unitdir}/nvidia-suspend.service
+%{_unitdir}/nvidia-suspend-then-hibernate.service
 %{_bindir}/nvidia-powerd
 %{_bindir}/nvidia-sleep.sh
 
