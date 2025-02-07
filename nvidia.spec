@@ -14,7 +14,7 @@
 %global rc_openonly 0
 
 Name:		nvidia
-Version:	565.77
+Version:	570.86.16
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -25,7 +25,7 @@ Version:	565.77
 %else
 %define ver %{version}
 %endif
-Release:	5
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -50,7 +50,7 @@ Patch1:		%{name}-settings-desktop.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
 #Patch10:	nvidia-kernel-6.12.patch
-Patch11:	nvidia-kernel-6.13.patch
+#Patch11:	nvidia-kernel-6.13.patch
 #Patch12:  nvidia_drm-kernel-6.12.patch
 
 Group:		Hardware
@@ -246,6 +246,11 @@ Provides:	%{name}-kmod-common = %{version}
 
 Requires:	%{name}-kmod = %{version}
 Requires:	%{name} = %{version}
+
+# Make sure depmod and dracut are run after all relevant modules are installed
+%(for i in %{kernels}; do
+	echo "Requires(post):	(%{name}-kmod-$i if kernel-$i)"
+done)
 
 Obsoletes:	cuda-nvidia-kmod-common <= %{version}
 

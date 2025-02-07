@@ -1,6 +1,6 @@
 sources:
-  nvidia-modprobe-565.77.tar.gz: 6625c64d5a5962a9cfa116cb682b103bdb5fd737
-  nvidia-persistenced-565.77.tar.gz: e1e4e81fb633f0d13775e65e576d3e9f65691fe7
-  nvidia-settings-565.77.tar.gz: ad14d08613315b707cba41e28be674106a1b3bc0
-  NVIDIA-Linux-aarch64-565.77.run: 1441dfe8908c283c0058a064a0bfd7832aefd341
-  NVIDIA-Linux-x86_64-565.77.run: faadafa81a5b0bf409d7ad0f5602da9df30a7a19
+  NVIDIA-Linux-aarch64-570.86.16.run: a6b87860c18342d5eafe12cfcd4c3771b6e9f393
+  NVIDIA-Linux-x86_64-570.86.16.run: fd57f440d6d3531d605046e0de032ce827f970c3
+  nvidia-modprobe-570.86.16.tar.gz: 534470dcd333aca9cbfa0b71b4fdb82af3b16dfb
+  nvidia-persistenced-570.86.16.tar.gz: 8b8b9a79c74c2f366dacd803b53615a6f5444930
+  nvidia-settings-570.86.16.tar.gz: 55711dab79cc74c4bb812b99d9211e868d36b5f4
