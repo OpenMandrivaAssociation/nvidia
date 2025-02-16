@@ -49,9 +49,7 @@ Patch1:		%{name}-settings-desktop.patch
 #Patch3:		%%{name}-settings-libXNVCtrl.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
-#Patch10:	nvidia-kernel-6.12.patch
-#Patch11:	nvidia-kernel-6.13.patch
-#Patch12:  nvidia_drm-kernel-6.12.patch
+Patch5:		nvidia-kernel-6.14.patch
 
 Group:		Hardware
 License:	distributable

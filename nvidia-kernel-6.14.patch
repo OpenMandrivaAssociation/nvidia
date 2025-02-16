@@ -1,0 +1,42 @@
+diff -up NVIDIA-Linux-x86_64-570.86.16/kernel-open/nvidia-drm/nvidia-drm-drv.c.1~ NVIDIA-Linux-x86_64-570.86.16/kernel-open/nvidia-drm/nvidia-drm-drv.c
+--- NVIDIA-Linux-x86_64-570.86.16/kernel-open/nvidia-drm/nvidia-drm-drv.c.1~	2025-01-24 21:52:46.000000000 +0100
++++ NVIDIA-Linux-x86_64-570.86.16/kernel-open/nvidia-drm/nvidia-drm-drv.c	2025-02-16 21:36:18.528110661 +0100
+@@ -88,6 +88,7 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/workqueue.h>
++#include <linux/version.h>
+ 
+ /*
+  * Commit fcd70cd36b9b ("drm: Split out drm_probe_helper.h")
+@@ -1915,7 +1916,9 @@ static struct drm_driver nv_drm_driver =
+     .name                   = "nvidia-drm",
+ 
+     .desc                   = "NVIDIA DRM driver",
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 14, 0)
+     .date                   = "20160202",
++#endif
+ 
+ #if defined(NV_DRM_DRIVER_HAS_DEVICE_LIST)
+     .device_list            = LIST_HEAD_INIT(nv_drm_driver.device_list),
+diff -up NVIDIA-Linux-x86_64-570.86.16/kernel/nvidia-drm/nvidia-drm-drv.c.1~ NVIDIA-Linux-x86_64-570.86.16/kernel/nvidia-drm/nvidia-drm-drv.c
+--- NVIDIA-Linux-x86_64-570.86.16/kernel/nvidia-drm/nvidia-drm-drv.c.1~	2025-01-24 21:50:25.000000000 +0100
++++ NVIDIA-Linux-x86_64-570.86.16/kernel/nvidia-drm/nvidia-drm-drv.c	2025-02-16 21:36:37.160162439 +0100
+@@ -88,6 +88,7 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/workqueue.h>
++#include <linux/version.h>
+ 
+ /*
+  * Commit fcd70cd36b9b ("drm: Split out drm_probe_helper.h")
+@@ -1915,7 +1916,9 @@ static struct drm_driver nv_drm_driver =
+     .name                   = "nvidia-drm",
+ 
+     .desc                   = "NVIDIA DRM driver",
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 14, 0)
+     .date                   = "20160202",
++#endif
+ 
+ #if defined(NV_DRM_DRIVER_HAS_DEVICE_LIST)
+     .device_list            = LIST_HEAD_INIT(nv_drm_driver.device_list),
