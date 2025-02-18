@@ -238,7 +238,6 @@ URL:		https://www.nvidia.com/object/unix.html
 
 BuildArch:	noarch
 Source5:	60-nvidia.rules
-Source6:	99-nvidia.conf
 
 Provides:	%{name}-kmod-common = %{version}
 
@@ -690,9 +689,6 @@ mkdir -p %{buildroot}%{_sysconfdir}/dracut.conf.d/
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_presetdir}
 
-# Avoid Nvidia modules getting in the initrd:
-install -p -m 0644 %{S:6} %{buildroot}%{_sysconfdir}/dracut.conf.d/
-
 # UDev rules:
 # https://github.com/NVIDIA/nvidia-modprobe/blob/master/modprobe-utils/nvidia-modprobe-utils.h#L33-L46
 # https://github.com/negativo17/nvidia-driver/issues/27
@@ -765,7 +761,7 @@ desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}-settings.des
 desktop-file-validate %{buildroot}%{_sysconfdir}/xdg/autostart/%{name}-settings-load.desktop
 appstream-util validate-relax --nonet %{buildroot}/%{_metainfodir}/%{name}-settings.appdata.xml
 
-%post kmod-common
+%posttrans kmod-common
 if ! grep -q nvidia-drm.modeset %{_sysconfdir}/default/grub; then
 	sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=['\''"]/&nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 /' %{_sysconfdir}/default/grub
 fi
@@ -782,7 +778,6 @@ fi
 %{_sbindir}/update-grub2
 
 %files kmod-common
-%{_sysconfdir}/dracut.conf.d/99-nvidia.conf
 %{_udevrulesdir}/60-nvidia.rules
 %{_prefix}/lib/firmware/nvidia/%{version}
 
