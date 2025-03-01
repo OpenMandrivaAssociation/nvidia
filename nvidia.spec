@@ -14,7 +14,7 @@
 %global rc_openonly 0
 
 Name:		nvidia
-Version:	570.86.16
+Version:	570.124.04
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -49,7 +49,7 @@ Patch1:		%{name}-settings-desktop.patch
 #Patch3:		%%{name}-settings-libXNVCtrl.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
-Patch5:		nvidia-kernel-6.14.patch
+#Patch5:		nvidia-kernel-6.14.patch
 
 Group:		Hardware
 License:	distributable
@@ -712,6 +712,7 @@ install -p -m 0644 %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{versi
 install -p -m 0755 %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}/systemd/nvidia-sleep.sh %{buildroot}%{_bindir}/
 install -p -m 0755 -D %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}/systemd/system-sleep/nvidia %{buildroot}%{_systemd_util_dir}/system-sleep/nvidia
 install -p -m 0644 -D %{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{version}/nvidia-dbus.conf %{buildroot}%{_datadir}/dbus-1/system.d/nvidia-dbus.conf
+
 # modprobe
 cd %{_builddir}/%{name}-%{version}/nvidia-modprobe-%{helpers_version}
 %make_install \
