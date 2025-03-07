@@ -25,7 +25,7 @@ Version:	570.124.04
 %else
 %define ver %{version}
 %endif
-Release:	7
+Release:	8
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -85,7 +85,7 @@ Requires:	%{name}-kmod-common = %{version}
 Requires:	%{name}-modprobe = %{EVRD}
 Suggests:	%{name}-settings = %{EVRD}
 %(for i in %{kernels}; do
-	echo "Requires:	(%{name}-kmod-$i if kernel-$i)"
+	echo "Requires:	((%{name}-kmod-$i or %{name}-kmod-open-$i) if kernel-$i)"
 done)
 
 %ifarch %{x86_64}
