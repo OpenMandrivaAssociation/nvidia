@@ -14,7 +14,7 @@
 %global rc_openonly 0
 
 Name:		nvidia
-Version:	570.124.04
+Version:	570.133.07
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -25,7 +25,7 @@ Version:	570.124.04
 %else
 %define ver %{version}
 %endif
-Release:	11
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
