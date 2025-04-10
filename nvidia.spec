@@ -11,7 +11,7 @@
 # Sometimes RC kernels restrict previously exported symbols to EXPORT_SYMBOL_GPL
 # When that happens, the closed kernel modules frequently won't compile anymore,
 # but we can still build the open versions
-%global rc_openonly 0
+%global rc_openonly 1
 
 Name:		nvidia
 Version:	570.133.07
@@ -25,7 +25,7 @@ Version:	570.133.07
 %else
 %define ver %{version}
 %endif
-Release:	6
+Release:	7
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -49,7 +49,7 @@ Patch1:		%{name}-settings-desktop.patch
 #Patch3:		%%{name}-settings-libXNVCtrl.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
-#Patch5:		nvidia-kernel-6.14.patch
+Patch5:		nvidia-kernel-6.15.patch
 
 Group:		Hardware
 License:	distributable
@@ -349,7 +349,11 @@ sh %{S:1} --extract-only
 %endif
 
 cd %{nvidia_driver_dir}
-%autopatch -m 5 -p1
+%autopatch -m 5 -M 9 -p1
+
+# Port to 6.15
+sed -i -e 's,EXTRA_CFLAGS,ccflags-y,g' kernel/Kbuild kernel-open/Kbuild
+sed -i -e 's,\<del_timer_sync\>,timer_delete_sync,g' kernel/*/*.{c,h} kernel-open/*/*.{c,h}
 
 # dkms kmod - closed and open
 cp -f %{S:4} %{nvidia_driver_dir}/kernel/dkms.conf

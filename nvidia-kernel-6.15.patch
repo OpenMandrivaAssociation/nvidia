@@ -1,0 +1,108 @@
+diff -up NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-drm/nvidia-drm-connector.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-drm/nvidia-drm-connector.c
+--- NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-drm/nvidia-drm-connector.c.omv~	2025-04-10 21:26:47.697913738 +0200
++++ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-drm/nvidia-drm-connector.c	2025-04-10 21:27:33.518477703 +0200
+@@ -45,6 +45,8 @@
+ #include <drm/drm_atomic_helper.h>
+ #include <drm/drm_edid.h>
+ 
++#include <linux/version.h>
++
+ static void nv_drm_connector_destroy(struct drm_connector *connector)
+ {
+     struct nv_drm_connector *nv_connector = to_nv_connector(connector);
+@@ -314,6 +314,9 @@ static int nv_drm_connector_get_modes(st
+ }
+ 
+ static int nv_drm_connector_mode_valid(struct drm_connector    *connector,
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
++					const
++#endif
+                                        struct drm_display_mode *mode)
+ {
+     struct drm_device *dev = connector->dev;
+diff -up NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-uvm/uvm_ats_sva.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-uvm/uvm_ats_sva.c
+--- NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-uvm/uvm_ats_sva.c.omv~	2025-04-10 21:29:52.662261750 +0200
++++ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-uvm/uvm_ats_sva.c	2025-04-10 21:29:59.848213036 +0200
+@@ -139,7 +139,11 @@ static NvU32 smmu_vcmdq_read32(void __io
+ 
+ static void smmu_vcmdq_write64(void __iomem *smmu_cmdqv_base, int reg, NvU64 val)
+ {
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0)
+     iowrite64(val, SMMU_VCMDQ_BASE_ADDR(smmu_cmdqv_base, VCMDQ) + reg);
++#else
++    __iowrite64_hi_lo(val, SMMU_VCMDQ_BASE_ADDR(smmu_cmdqv_base, VCMDQ) + reg);
++#endif
+ }
+ 
+ // Fix for Bug 4130089: [GH180][r535] WAR for kernel not issuing SMMU
+diff -up NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia/nv-nano-timer.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia/nv-nano-timer.c
+--- NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia/nv-nano-timer.c.omv~	2025-04-10 21:28:09.121821292 +0200
++++ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia/nv-nano-timer.c	2025-04-10 21:28:56.102722088 +0200
+@@ -154,9 +154,13 @@ void NV_API_CALL nv_create_nano_timer(
+     nv_nstimer->nv_nano_timer_callback = nvidia_nano_timer_callback;
+ 
+ #if NV_NANO_TIMER_USE_HRTIMER
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0)
+     hrtimer_init(&nv_nstimer->hr_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+     nv_nstimer->hr_timer.function = nv_nano_timer_callback_typed_data;
+ #else
++    hrtimer_setup(&nv_nstimer->hr_timer, nv_nano_timer_callback_typed_data, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++#endif
++#else
+ #if defined(NV_TIMER_SETUP_PRESENT)
+     timer_setup(&nv_nstimer->jiffy_timer, nv_jiffy_timer_callback_typed_data, 0);
+ #else
+diff -up NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-drm/nvidia-drm-connector.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-drm/nvidia-drm-connector.c
+--- NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-drm/nvidia-drm-connector.c.omv~	2025-04-10 21:27:38.324235355 +0200
++++ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-drm/nvidia-drm-connector.c	2025-04-10 21:27:54.940310176 +0200
+@@ -45,6 +45,8 @@
+ #include <drm/drm_atomic_helper.h>
+ #include <drm/drm_edid.h>
+ 
++#include <linux/version.h>
++
+ static void nv_drm_connector_destroy(struct drm_connector *connector)
+ {
+     struct nv_drm_connector *nv_connector = to_nv_connector(connector);
+@@ -314,6 +314,9 @@ static int nv_drm_connector_get_modes(st
+ }
+ 
+ static int nv_drm_connector_mode_valid(struct drm_connector    *connector,
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
++					const
++#endif
+                                        struct drm_display_mode *mode)
+ {
+     struct drm_device *dev = connector->dev;
+diff -up NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-uvm/uvm_ats_sva.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-uvm/uvm_ats_sva.c
+--- NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-uvm/uvm_ats_sva.c.omv~	2025-04-10 21:30:03.033144162 +0200
++++ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-uvm/uvm_ats_sva.c	2025-04-10 21:30:16.572892835 +0200
+@@ -139,7 +139,11 @@ static NvU32 smmu_vcmdq_read32(void __io
+ 
+ static void smmu_vcmdq_write64(void __iomem *smmu_cmdqv_base, int reg, NvU64 val)
+ {
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0)
+     iowrite64(val, SMMU_VCMDQ_BASE_ADDR(smmu_cmdqv_base, VCMDQ) + reg);
++#else
++    __iowrite64_hi_lo(val, SMMU_VCMDQ_BASE_ADDR(smmu_cmdqv_base, VCMDQ) + reg);
++#endif
+ }
+ 
+ // Fix for Bug 4130089: [GH180][r535] WAR for kernel not issuing SMMU
+diff -up NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia/nv-nano-timer.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia/nv-nano-timer.c
+--- NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia/nv-nano-timer.c.omv~	2025-04-10 21:29:00.500685449 +0200
++++ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia/nv-nano-timer.c	2025-04-10 21:29:31.808890670 +0200
+@@ -150,9 +150,13 @@ void NV_API_CALL nv_create_nano_timer(
+     nv_nstimer->nv_nano_timer_callback = nvidia_nano_timer_callback;
+ 
+ #if NV_NANO_TIMER_USE_HRTIMER
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0)
+     hrtimer_init(&nv_nstimer->hr_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+     nv_nstimer->hr_timer.function = nv_nano_timer_callback_typed_data;
+ #else
++    hrtimer_setup(&nv_nstimer->hr_timer, nv_nano_timer_callback_typed_data, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++#endif
++#else
+ #if defined(NV_TIMER_SETUP_PRESENT)
+     timer_setup(&nv_nstimer->jiffy_timer, nv_jiffy_timer_callback_typed_data, 0);
+ #else
