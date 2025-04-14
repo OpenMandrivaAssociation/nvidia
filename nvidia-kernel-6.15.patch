@@ -27,7 +27,7 @@ diff -up NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-uvm/uvm_ats_sva.c.omv
  
  static void smmu_vcmdq_write64(void __iomem *smmu_cmdqv_base, int reg, NvU64 val)
  {
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0) || defined(__aarch64__)
      iowrite64(val, SMMU_VCMDQ_BASE_ADDR(smmu_cmdqv_base, VCMDQ) + reg);
 +#else
 +    __iowrite64_hi_lo(val, SMMU_VCMDQ_BASE_ADDR(smmu_cmdqv_base, VCMDQ) + reg);
