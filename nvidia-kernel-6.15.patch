@@ -1,25 +1,3 @@
-diff -up NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-drm/nvidia-drm-connector.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-drm/nvidia-drm-connector.c
---- NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-drm/nvidia-drm-connector.c.omv~	2025-04-10 21:26:47.697913738 +0200
-+++ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-drm/nvidia-drm-connector.c	2025-04-10 21:27:33.518477703 +0200
-@@ -45,6 +45,8 @@
- #include <drm/drm_atomic_helper.h>
- #include <drm/drm_edid.h>
- 
-+#include <linux/version.h>
-+
- static void nv_drm_connector_destroy(struct drm_connector *connector)
- {
-     struct nv_drm_connector *nv_connector = to_nv_connector(connector);
-@@ -314,6 +314,9 @@ static int nv_drm_connector_get_modes(st
- }
- 
- static int nv_drm_connector_mode_valid(struct drm_connector    *connector,
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
-+					const
-+#endif
-                                        struct drm_display_mode *mode)
- {
-     struct drm_device *dev = connector->dev;
 diff -up NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-uvm/uvm_ats_sva.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-uvm/uvm_ats_sva.c
 --- NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-uvm/uvm_ats_sva.c.omv~	2025-04-10 21:29:52.662261750 +0200
 +++ NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia-uvm/uvm_ats_sva.c	2025-04-10 21:29:59.848213036 +0200
@@ -52,28 +30,6 @@ diff -up NVIDIA-Linux-x86_64-570.133.07/kernel-open/nvidia/nv-nano-timer.c.omv~ 
  #if defined(NV_TIMER_SETUP_PRESENT)
      timer_setup(&nv_nstimer->jiffy_timer, nv_jiffy_timer_callback_typed_data, 0);
  #else
-diff -up NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-drm/nvidia-drm-connector.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-drm/nvidia-drm-connector.c
---- NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-drm/nvidia-drm-connector.c.omv~	2025-04-10 21:27:38.324235355 +0200
-+++ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-drm/nvidia-drm-connector.c	2025-04-10 21:27:54.940310176 +0200
-@@ -45,6 +45,8 @@
- #include <drm/drm_atomic_helper.h>
- #include <drm/drm_edid.h>
- 
-+#include <linux/version.h>
-+
- static void nv_drm_connector_destroy(struct drm_connector *connector)
- {
-     struct nv_drm_connector *nv_connector = to_nv_connector(connector);
-@@ -314,6 +314,9 @@ static int nv_drm_connector_get_modes(st
- }
- 
- static int nv_drm_connector_mode_valid(struct drm_connector    *connector,
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
-+					const
-+#endif
-                                        struct drm_display_mode *mode)
- {
-     struct drm_device *dev = connector->dev;
 diff -up NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-uvm/uvm_ats_sva.c.omv~ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-uvm/uvm_ats_sva.c
 --- NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-uvm/uvm_ats_sva.c.omv~	2025-04-10 21:30:03.033144162 +0200
 +++ NVIDIA-Linux-x86_64-570.133.07/kernel/nvidia-uvm/uvm_ats_sva.c	2025-04-10 21:30:16.572892835 +0200
