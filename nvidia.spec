@@ -14,7 +14,7 @@
 %global rc_openonly 1
 
 Name:		nvidia
-Version:	575.51.02
+Version:	575.64
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -25,14 +25,14 @@ Version:	575.51.02
 %else
 %define ver %{version}
 %endif
-Release:	4
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
-Source0:	http://us.download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
+Source0:	https://us.download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
 Source1:	https://us.download.nvidia.com/XFree86/aarch64/%{ver}/NVIDIA-Linux-aarch64-%{ver}.run
 Source2:	modpackage.template
-Source3:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/x11-extra/%{name}/xorg-nvidia.conf
+Source3:	xorg-nvidia.conf
 
 %global	kernel_source_dir	%{_builddir}/%{name}-%{version}/linux-%{kversion}
 %global	nvidia_driver_dir	%{_builddir}/%{name}-%{version}/NVIDIA-Linux-%{_arch}-%{ver}
@@ -49,9 +49,6 @@ Patch1:		%{name}-settings-desktop.patch
 #Patch3:		%%{name}-settings-libXNVCtrl.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
-Patch5:		nvidia-kernel-6.15.patch
-# https://github.com/CachyOS/kernel-patches/commit/914aea4298e3744beddad09f3d2773d71839b182
-Patch6:		Workaround-nv_vm_flags_-calling-GPL-only-code.patch
 
 Group:		Hardware
 License:	distributable
