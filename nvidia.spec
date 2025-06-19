@@ -50,6 +50,8 @@ Patch1:		%{name}-settings-desktop.patch
 
 Patch4:		%{name}-settings-lib-permissions.patch
 Patch5:		nvidia-kernel-6.15.patch
+# https://github.com/CachyOS/kernel-patches/commit/914aea4298e3744beddad09f3d2773d71839b182
+Patch6:		Workaround-nv_vm_flags_-calling-GPL-only-code.patch
 
 Group:		Hardware
 License:	distributable
