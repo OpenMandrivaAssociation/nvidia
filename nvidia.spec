@@ -14,7 +14,7 @@
 %global rc_openonly 1
 
 Name:		nvidia
-Version:	575.64
+Version:	575.64.03
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -263,7 +263,9 @@ package variants.
 Summary:	A daemon to maintain persistent software state in the NVIDIA driver
 License:	GPLv2+
 URL:		https://github.com/NVIDIA/nvidia-persistenced
-Source7:	https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-persistenced-%{helpers_version}.tar.gz
+# During 575.64.03 update, was not available in GH, so pick on from nvidia http in tar.bz2
+#Source7:	https://github.com/NVIDIA/nvidia-persistenced/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-persistenced-%{helpers_version}.tar.gz
+Source7:	https://download.nvidia.com/XFree86/nvidia-persistenced/nvidia-persistenced-%{version}.tar.bz2
 Source8:	nvidia-persistenced.service
 Source9:	nvidia-persistenced.conf
 
@@ -284,7 +286,9 @@ startup time of new clients in this scenario.
 Summary:	NVIDIA kernel module loader
 License:	GPLv2+
 URL:		https://github.com/NVIDIA/nvidia-modprobe
-Source10:	https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-modprobe-%{helpers_version}.tar.gz
+# During 575.64.03 update, was not available in GH, so pick on from nvidia http in tar.bz2
+#Source10:	https://github.com/NVIDIA/nvidia-modprobe/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-modprobe-%{helpers_version}.tar.gz
+Source10:	https://download.nvidia.com/XFree86/nvidia-modprobe/nvidia-modprobe-%{version}.tar.bz2
 
 Requires:	%{name} = %{version}
 
@@ -300,7 +304,9 @@ present.
 %package settings
 Summary:	Configure the NVIDIA graphics driver
 License:	GPLv2+
-Source11:	https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-settings-%{helpers_version}.tar.gz
+# During 575.64.03 update, was not available in GH, so pick on from nvidia http in tar.bz2
+#Source11:	https://github.com/NVIDIA/nvidia-settings/archive/refs/tags/%{helpers_version}.tar.gz#/%{name}-settings-%{helpers_version}.tar.gz
+Source11:	https://download.nvidia.com/XFree86/nvidia-settings/nvidia-settings-%{version}.tar.bz2
 Source12:	%{name}-settings-load.desktop
 Source13:	%{name}-settings.appdata.xml
 
