@@ -14,7 +14,7 @@
 %global rc_openonly 1
 
 Name:		nvidia
-Version:	575.64.03
+Version:	575.64.05
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -80,6 +80,8 @@ BuildRequires:	cmake(VulkanHeaders)
 # this package is needed to determine %%{kversion}
 BuildRequires:	kernel-desktop-devel
 
+Requires:	(%{name}-wayland = %{EVRD} if %{mklibname wayland-egl})
+Requires:	(%{name}-x11 = %{EVRD} if xlibre-xorg)
 Requires:	%{name}-kmod-common = %{version}
 Requires:	%{name}-modprobe = %{EVRD}
 Suggests:	%{name}-settings = %{EVRD}
@@ -92,7 +94,7 @@ Requires:	%{name}-32bit = %{version}
 %endif
 
 Requires:	libglvnd-egl
-Requires:	egl-wayland
+Requires:	egl-gbm
 Requires:	vulkan-loader
 
 %(for i in %{kernels};
@@ -130,11 +132,30 @@ installation.
 
 This package should only be used as a last resort.
 
+%package wayland
+Summary:	Wayland support for the binary nvidia driver
+Requires:	%{name} = %{EVRD}
+Requires:	egl-wayland
+
+%description wayland
+Wayland support for the binary nvidia driver
+
+%package x11
+Summary:	X11 support for the binary nvidia driver
+Requires:	%{name} = %{EVRD}
+Requires:	egl-x11
+
+%description x11
+X11 support for the binary nvidia driver
+
 %ifarch %{x86_64}
 %package 32bit
 Summary:	Binary-only 32-bit driver for nvidia graphics chips
 
 Requires:	%{name} = %{version}
+Requires:	(%{name}-32bit-wayland = %{EVRD} if %{mklib32name wayland-egl})
+Requires:	(%{name}-32bit-x11 = %{EVRD} if %{mklib32name GLX 0})
+Requires:	%{mklibname nvidia-egl-gbm}
 
 Provides:	libGLdispatch0 >= 1.4.0-1
 Provides:	libGL1 >= 1.4.0-1
@@ -156,6 +177,22 @@ Alternatively, use the Nouveau driver that comes with the default
 installation.
 
 This package should only be used as a last resort.
+
+%package 32bit-wayland
+Summary:	Wayland support for the binary nvidia driver (32-bit)
+Requires:	%{name}-32bit = %{EVRD}
+Requires:	%{mklib32name nvidia-egl-wayland}
+
+%description 32bit-wayland
+Wayland support for the binary nvidia driver (32-bit)
+
+%package 32bit-x11
+Summary:	X11 support for the binary nvidia driver (32-bit)
+Requires:	%{name} = %{EVRD}
+Requires:	%{mklib32name nvidia-egl-x11}
+
+%description 32bit-x11
+X11 support for the binary nvidia driver (32-bit)
 %endif
 
 # =======================================================================================#
@@ -518,14 +555,18 @@ cd %{nvidia_driver_dir}
 
 inst() {
 	install -m 644 -D $(basename $1) %{buildroot}"$1"
+	rm -f $(basename $1)
 	if [ -e "32/$(basename $1)" ]; then
 		install -m 644 -D "32/$(basename $1)" %{buildroot}$(echo $1 |sed -e 's,%_lib,lib,')
+		rm -f 32/$(basename $1)
 	fi
 }
 instx() {
 	install -m 755 -D $(basename $1) %{buildroot}"$1"
+	rm -f $(basename $1)
 	if [ -e "32/$(basename $1)" ]; then
 		install -m 755 -D "32/$(basename $1)" %{buildroot}$(echo $1 |sed -e 's,%_lib,lib,')
+		rm -f 32/$(basename $1)
 	fi
 }
 sl() {
@@ -613,6 +654,7 @@ instx %{_libdir}/libnvidia-api.so.1
 
 instx %{_libdir}/libnvidia-ngx.so.%{version}
 instx %{_libdir}/libnvidia-nvvm.so.%{version}
+instx %{_libdir}/libnvidia-nvvm70.so.4
 sl nvidia-nvvm 4
 instx %{_libdir}/libnvidia-opticalflow.so.%{version}
 %ifarch %{x86_64}
@@ -763,9 +805,6 @@ install -p -m 644 %{S:12} %{buildroot}%{_sysconfdir}/xdg/autostart/
 mkdir -p %{buildroot}%{_metainfodir}/
 install -p -m 0644 %{S:13} %{buildroot}%{_metainfodir}/
 
-# Remove bundled wayland client
-rm -vf %{buildroot}/%{_libdir}/libnvidia-wayland-client.so*
-
 %check
 desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}-settings.desktop
 desktop-file-validate %{buildroot}%{_sysconfdir}/xdg/autostart/%{name}-settings-load.desktop
@@ -816,7 +855,6 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_docdir}/%{name}/NVIDIA_Changelog
 %{_docdir}/%{name}/README.txt
 %{_docdir}/%{name}/html
-%{_libdir}/xorg/modules/drivers/nvidia_drv.so
 %{_datadir}/vulkan/icd.d/nvidia_icd.json
 %{_libdir}/libnvidia-glcore.so*
 %{_datadir}/glvnd/egl_vendor.d/10_nvidia.json
@@ -833,6 +871,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-api.so*
 %{_libdir}/libnvidia-ngx.so*
 %{_libdir}/libnvidia-nvvm.so*
+%{_libdir}/libnvidia-nvvm70.so*
 %{_libdir}/libnvidia-opticalflow.so*
 %ifarch %{x86_64}
 %{_libdir}/libnvidia-pkcs11-openssl3.so*
@@ -864,7 +903,6 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-glvkspirv.so*
 %{_datadir}/nvidia/nvidia-application-profiles-%{version}-rc
 %{_datadir}/nvidia/nvidia-application-profiles-%{version}-key-documentation
-%{_datadir}/X11/xorg.conf.d/20-nvidia.conf
 %{_systemd_util_dir}/system-sleep/nvidia
 %{_unitdir}/nvidia-hibernate.service
 %{_unitdir}/nvidia-powerd.service
@@ -873,6 +911,13 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_unitdir}/nvidia-suspend-then-hibernate.service
 %{_bindir}/nvidia-powerd
 %{_bindir}/nvidia-sleep.sh
+
+%files wayland
+%{_libdir}/libnvidia-wayland-client.so.*
+
+%files x11
+%{_datadir}/X11/xorg.conf.d/20-nvidia.conf
+%{_libdir}/xorg/modules/drivers/nvidia_drv.so
 
 %ifarch %{x86_64}
 %files 32bit
@@ -896,7 +941,12 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_prefix}/lib/libnvidia-glvkspirv.so*
 %{_prefix}/lib/libnvidia-allocator.so*
 %{_prefix}/lib/libnvidia-nvvm.so*
+%{_prefix}/lib/libnvidia-nvvm70.so*
 %{_prefix}/lib/libnvidia-opticalflow.so*
+
+%files 32bit-wayland
+
+%files 32bit-x11
 %endif
 
 %files dkms-kmod

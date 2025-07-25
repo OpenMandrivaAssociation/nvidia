@@ -1,6 +1,7 @@
 sources:
-  NVIDIA-Linux-aarch64-575.64.03.run: 374eb1487525e01e5f840bde44c5658d10140bb4
-  NVIDIA-Linux-x86_64-575.64.03.run: 4d5726bd90a18439d51f2d48edf44fe0145f5976
-  nvidia-modprobe-575.64.03.tar.bz2: 5b02033a7375705fd0c43f54d6f928a12db9d356
-  nvidia-persistenced-575.64.03.tar.bz2: 25acc039a4cca608e484ca2007837b068a832513
   nvidia-settings-575.64.03.tar.bz2: 0d9d4ef829494ba5752541dfdaf19286d6783156
+  NVIDIA-Linux-aarch64-575.64.05.run: 23032843bc8f0f6ba0e052eefc64fd67d47722b6
+  NVIDIA-Linux-x86_64-575.64.05.run: 7d4f9b7b6a9f25153845bee62900cb5ae21a374e
+  nvidia-modprobe-575.64.05.tar.bz2: 4d278beaf7ba50ef8f7f42d92f517058dea5b885
+  nvidia-persistenced-575.64.05.tar.bz2: 3d281689a4f32ad08c07a619e7200222b36a3fb0
+  nvidia-settings-575.64.05.tar.bz2: f6ce7864275f91ded6958769d7eecf4e2a766f31
