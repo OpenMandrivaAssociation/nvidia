@@ -941,7 +941,6 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_prefix}/lib/libnvidia-glvkspirv.so*
 %{_prefix}/lib/libnvidia-allocator.so*
 %{_prefix}/lib/libnvidia-nvvm.so*
-%{_prefix}/lib/libnvidia-nvvm70.so*
 %{_prefix}/lib/libnvidia-opticalflow.so*
 
 %files 32bit-wayland
