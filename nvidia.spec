@@ -25,7 +25,7 @@ Version:	580.95.05
 %else
 %define ver %{version}
 %endif
-Release:	3
+Release:	4
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -665,6 +665,14 @@ instx %{_libdir}/libnvidia-pkcs11-openssl3.so.%{version}
 instx %{_libdir}/libnvidia-rtcore.so.%{version}
 instx %{_libdir}/libnvoptix.so.%{version}
 
+# GBM
+mkdir -p %{buildroot}%{_libdir}/gbm
+ln -s ../libnvidia-allocator.so.%{version} %{buildroot}%{_libdir}/gbm/nvidia-drm_gbm.so
+%ifarch %{x86_64}
+mkdir -p %{buildroot}%{_prefix}/lib/gbm
+ln -s ../libnvidia-allocator.so.%{version} %{buildroot}%{_prefix}/lib/gbm/nvidia-drm_gbm.so
+%endif
+
 # Firmware
 mkdir -p %{buildroot}%{_prefix}/lib/firmware/nvidia
 cp -a firmware %{buildroot}%{_prefix}/lib/firmware/nvidia/%{version}
@@ -911,6 +919,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_unitdir}/nvidia-suspend-then-hibernate.service
 %{_bindir}/nvidia-powerd
 %{_bindir}/nvidia-sleep.sh
+%{_libdir}/gbm/nvidia-drm_gbm.so
 
 %files wayland
 %{_libdir}/libnvidia-wayland-client.so.*
@@ -942,6 +951,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_prefix}/lib/libnvidia-allocator.so*
 %{_prefix}/lib/libnvidia-nvvm.so*
 %{_prefix}/lib/libnvidia-opticalflow.so*
+%{_prefix}/lib/gbm/nvidia-drm_gbm.so
 
 %files 32bit-wayland
 
