@@ -14,23 +14,23 @@
 %global rc_openonly 1
 
 Name:		nvidia
-Version:	580.95.05
+Version:	580.105.08
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
 # Sometimes they release aarch64 late -- usually should be %{version}
-%define aarch64version %{version}
+%define aarch64version 580.95.05
 %ifarch %{aarch64}
 %define ver %{aarch64version}
 %else
 %define ver %{version}
 %endif
-Release:	4
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
 Source0:	https://us.download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
-Source1:	https://us.download.nvidia.com/XFree86/aarch64/%{ver}/NVIDIA-Linux-aarch64-%{ver}.run
+Source1:	https://us.download.nvidia.com/XFree86/aarch64/%{aarch64version}/NVIDIA-Linux-aarch64-%{aarch64version}.run
 Source2:	modpackage.template
 Source3:	xorg-nvidia.conf
 
