@@ -6,7 +6,8 @@
 %global	open_dkms_name	nvidia-open
 %global	dkms_name	nvidia
 
-%global	kernels desktop server rc-desktop rc-server desktop-gcc server-gcc rc-desktop-gcc rc-server-gcc
+%global	kernels desktop server desktop-gcc server-gcc
+# When there is an RC kernel, add rc-desktop rc-server rc-desktop-gcc rc-server-gcc
 
 # Sometimes RC kernels restrict previously exported symbols to EXPORT_SYMBOL_GPL
 # When that happens, the closed kernel modules frequently won't compile anymore,
@@ -25,7 +26,7 @@ Version:	580.105.08
 %else
 %define ver %{version}
 %endif
-Release:	2
+Release:	3
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
