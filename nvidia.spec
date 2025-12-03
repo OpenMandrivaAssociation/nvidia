@@ -733,9 +733,8 @@ cp %{nvidia_driver_dir}/README.txt %{buildroot}%{_docdir}/%{name}
 cp -r %{nvidia_driver_dir}/html %{buildroot}%{_docdir}/%{name}
 
 # wine
-mkdir -p %{buildroot}%{_prefix}/lib/wine/i386-windows %{buildroot}%{_prefix}/lib/wine/x86_64-windows
+mkdir -p %{buildroot}%{_prefix}/lib/wine/x86_64-windows
 mv *.dll %{buildroot}%{_prefix}/lib/wine/x86_64-windows/
-mv 32/*.dll %{buildroot}%{_prefix}/lib/wine/i386-windows/
 
 # Kernel modules
 for i in %{kernels}; do
