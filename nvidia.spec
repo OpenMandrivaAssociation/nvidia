@@ -15,18 +15,18 @@
 %global rc_openonly 1
 
 Name:		nvidia
-Version:	580.105.08
+Version:	590.44.01
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
 # Sometimes they release aarch64 late -- usually should be %{version}
-%define aarch64version 580.95.05
+%define aarch64version %{version}
 %ifarch %{aarch64}
 %define ver %{aarch64version}
 %else
 %define ver %{version}
 %endif
-Release:	3
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -98,6 +98,10 @@ Requires:	libglvnd-egl
 Requires:	egl-gbm
 Requires:	vulkan-loader
 
+%ifarch %{x86_64}
+Recommends:	(%{name}-wine = %{EVRD} if (wine or proton or proton-experimental or proton-bleeding-edge))
+%endif
+
 %(for i in %{kernels};
 	do
 		echo BuildRequires: kernel-$i-devel
@@ -132,6 +136,14 @@ Alternatively, use the Nouveau driver that comes with the default
 installation.
 
 This package should only be used as a last resort.
+
+%package wine
+Summary:	DLL files allowing Windows applications running in Wine/Proton to use the nvidia driver
+Group:		Hardware
+Requires:	%{name} = %{EVRD}
+
+%description wine
+DLL files allowing Windows applications running in Wine/Proton to use the nvidia driver
 
 %package wayland
 Summary:	Wayland support for the binary nvidia driver
@@ -666,6 +678,10 @@ instx %{_libdir}/libnvidia-pkcs11-openssl3.so.%{version}
 instx %{_libdir}/libnvidia-rtcore.so.%{version}
 instx %{_libdir}/libnvoptix.so.%{version}
 
+instx %{_libdir}/libnvidia-tileiras.so.%{version}
+instx %{_libdir}/libnvidia-sandboxutils.so.%{version}
+instx %{_libdir}/libnvidia-vksc-core.so.%{version}
+
 # GBM
 mkdir -p %{buildroot}%{_libdir}/gbm
 ln -s ../libnvidia-allocator.so.%{version} %{buildroot}%{_libdir}/gbm/nvidia-drm_gbm.so
@@ -715,6 +731,11 @@ cp %{nvidia_driver_dir}/LICENSE %{buildroot}%{_datadir}/licenses/%{name}
 cp %{nvidia_driver_dir}/NVIDIA_Changelog %{buildroot}%{_docdir}/%{name}
 cp %{nvidia_driver_dir}/README.txt %{buildroot}%{_docdir}/%{name}
 cp -r %{nvidia_driver_dir}/html %{buildroot}%{_docdir}/%{name}
+
+# wine
+mkdir -p %{buildroot}%{_prefix}/lib/wine/i386-windows %{buildroot}%{_prefix}/lib/wine/x86_64-windows
+mv *.dll %{buildroot}%{_prefix}/lib/wine/x86_64-windows/
+mv 32/*.dll %{buildroot}%{_prefix}/lib/wine/i386-windows/
 
 # Kernel modules
 for i in %{kernels}; do
@@ -887,6 +908,9 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-pkcs11.so*
 %endif
 %{_libdir}/libnvidia-rtcore.so*
+%{_libdir}/libnvidia-tileiras.so*
+%{_libdir}/libnvidia-sandboxutils.so.*
+%{_libdir}/libnvidia-vksc-core.so.*
 %{_libdir}/libnvoptix.so*
 %{_libdir}/libcuda.so*
 %{_libdir}/libcudadebugger.so*
@@ -948,10 +972,11 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_prefix}/lib/libnvidia-encode.so*
 %{_prefix}/lib/libnvidia-fbc.so*
 %{_prefix}/lib/vdpau/libvdpau_nvidia.so*
-%{_prefix}/lib/libnvidia-glvkspirv.so*
 %{_prefix}/lib/libnvidia-allocator.so*
 %{_prefix}/lib/libnvidia-nvvm.so*
 %{_prefix}/lib/libnvidia-opticalflow.so*
+%{_prefix}/lib/libnvidia-tileiras.so*
+%{_prefix}/lib/libnvidia-glvkspirv.so.*
 %{_prefix}/lib/gbm/nvidia-drm_gbm.so
 
 %files 32bit-wayland
@@ -1001,6 +1026,11 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-gtk2.so.%{helpers_version}
 %{_mandir}/man1/%{name}-settings.*
 %{_sysconfdir}/xdg/autostart/%{name}-settings-load.desktop
+
+%ifarch %{x86_64}
+%files wine
+%{_prefix}/lib/wine/*/*.dll
+%endif
 
 # upstream not building a so
 
