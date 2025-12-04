@@ -680,7 +680,9 @@ instx %{_libdir}/libnvoptix.so.%{version}
 
 instx %{_libdir}/libnvidia-tileiras.so.%{version}
 instx %{_libdir}/libnvidia-sandboxutils.so.%{version}
+%ifarch %{x86_64}
 instx %{_libdir}/libnvidia-vksc-core.so.%{version}
+%endif
 
 # GBM
 mkdir -p %{buildroot}%{_libdir}/gbm
@@ -909,7 +911,9 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libnvidia-rtcore.so*
 %{_libdir}/libnvidia-tileiras.so*
 %{_libdir}/libnvidia-sandboxutils.so.*
+%ifarch %{x86_64}
 %{_libdir}/libnvidia-vksc-core.so.*
+%endif
 %{_libdir}/libnvoptix.so*
 %{_libdir}/libcuda.so*
 %{_libdir}/libcudadebugger.so*
