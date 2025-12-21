@@ -1,10 +1,10 @@
 %define kversion %(rpm -q --qf '%%{VERSION}-%%{RELEASE}\\n' kernel-desktop-devel |sort -V |tail -n1)
 %define kdir %(rpm -q --qf '%%{VERSION}-desktop-%%{RELEASE}%%{DISTTAG}\\n' kernel-desktop-devel |sort -V |tail -n1)
-%global debug_package %{nil}
+# global debug_package %{nil}
 %global	_dracut_conf_d	%{_prefix}/lib/dracut/dracut.conf.d
 %global	_modprobe_d		%{_prefix}/lib/modprobe.d/
 %global	open_dkms_name	nvidia-open
-%global	dkms_name	nvidia
+# global	dkms_name	nvidia
 
 %global	kernels desktop server desktop-gcc server-gcc
 # When there is an RC kernel, add rc-desktop rc-server rc-desktop-gcc rc-server-gcc
@@ -12,10 +12,10 @@
 # Sometimes RC kernels restrict previously exported symbols to EXPORT_SYMBOL_GPL
 # When that happens, the closed kernel modules frequently won't compile anymore,
 # but we can still build the open versions
-%global rc_openonly 1
+# global rc_openonly 1
 
 Name:		nvidia
-Version:	590.44.01
+Version:	590.48.01
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -28,7 +28,7 @@ Version:	590.44.01
 %endif
 Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
-Summary:	Binary-only driver for NVIDIA graphics chips
+Summary:	Open Source kmod and proprietary userland for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
 Source0:	https://us.download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}.run
 Source1:	https://us.download.nvidia.com/XFree86/aarch64/%{aarch64version}/NVIDIA-Linux-aarch64-%{aarch64version}.run
@@ -87,7 +87,7 @@ Requires:	%{name}-kmod-common = %{version}
 Requires:	%{name}-modprobe = %{EVRD}
 Suggests:	%{name}-settings = %{EVRD}
 %(for i in %{kernels}; do
-	echo "Requires:	((%{name}-kmod-$i or %{name}-kmod-open-$i) if kernel-$i)"
+	echo "Requires:	((%{name}-kmod-open-$i) if kernel-$i)"
 done)
 
 %ifarch %{x86_64}
@@ -212,26 +212,26 @@ X11 support for the binary nvidia driver (32-bit)
 # dkms-nvidia - modified from https://github.com/NVIDIA/yum-packaging-dkms-nvidia
 # =======================================================================================#
 
-%package dkms-kmod
-License:	NVIDIA License
-Summary:	NVIDIA display driver kernel module. **This is an unsupported proprietary driver. Use with caution!
-URL:		https://www.nvidia.com/object/unix.html
+# %package dkms-kmod
+# License:	NVIDIA License
+# Summary:	NVIDIA display driver kernel module. **This is an unsupported proprietary driver. Use with caution!
+# URL:		https://www.nvidia.com/object/unix.html
 
-Source4:	dkms-%{dkms_name}.conf
+# Source4:	dkms-%{dkms_name}.conf
 
-Provides:	%{name}-kmod = %{version}
-Provides:	should-restart = system
+# Provides:	%{name}-kmod = %{version}
+# Provides:	should-restart = system
 
-Requires:	%{name}-kmod-headers = %{version}
-Requires:	%{name}-kmod-common = %{version}
-Requires:	dkms
+# Requires:	%{name}-kmod-headers = %{version}
+# Requires:	%{name}-kmod-common = %{version}
+# Requires:	dkms
 
-Conflicts:	kmod-nvidia-latest-dkms
+# Conflicts:	kmod-nvidia-latest-dkms
 
-%description dkms-kmod
-This package provides the proprietary Nvidia kernel driver modules.
-The modules are rebuilt through the DKMS system when a new kernel or modules
-become available.
+# %description dkms-kmod
+# This package provides the proprietary Nvidia kernel driver modules.
+# The modules are rebuilt through the DKMS system when a new kernel or modules
+# become available.
 
 # =======================================================================================#
 # dkms-open-nvidia - modified from https://github.com/NVIDIA/yum-packaging-dkms-nvidia
@@ -290,12 +290,13 @@ Source5:	60-nvidia.rules
 
 Provides:	%{name}-kmod-common = %{version}
 
-Requires:	%{name}-kmod = %{version}
+# Requires:	%{name}-kmod = %{version}
+Requires:	%{name}-kmod-open-source = %{version}
 Requires:	%{name} = %{version}
 
 # Make sure depmod and dracut are run after all relevant modules are installed
 %(for i in %{kernels}; do
-	echo "Requires(post):	(%{name}-kmod-$i if kernel-$i)"
+	echo "Requires(post):	(%{name}-kmod-open-source-$i if kernel-$i)"
 done)
 
 Obsoletes:	cuda-nvidia-kmod-common <= %{version}
@@ -411,9 +412,9 @@ sed -i -e 's,EXTRA_CFLAGS,ccflags-y,g' kernel/Kbuild kernel-open/Kbuild
 sed -i -e 's,\<del_timer_sync\>,timer_delete_sync,g' kernel/*/*.{c,h} kernel-open/*/*.{c,h}
 
 # dkms kmod - closed and open
-cp -f %{S:4} %{nvidia_driver_dir}/kernel/dkms.conf
+# cp -f %{S:4} %{nvidia_driver_dir}/kernel/dkms.conf
 cp -f %{S:4} %{nvidia_driver_dir}/kernel-open/dkms.conf
-sed -i -e 's/__VERSION_STRING/%{version}/g' %{nvidia_driver_dir}/kernel/dkms.conf
+# sed -i -e 's/__VERSION_STRING/%{version}/g' %{nvidia_driver_dir}/kernel/dkms.conf
 sed -i -e 's/__VERSION_STRING/%{version}/g' %{nvidia_driver_dir}/kernel-open/dkms.conf
 cp -r %{nvidia_driver_dir}/kernel-open %{open_kmod_source}
 
@@ -457,38 +458,38 @@ for i in %{kernels}; do
 	# nvidia does not.
 
 	# kmod
-	cd %{nvidia_driver_dir}/kernel
+# 	cd %{nvidia_driver_dir}/kernel
 
-	cp -r /usr/src/linux-$KD %{kernel_source_dir}-$i
-	# A proper kernel module build uses /lib/modules/KVER/{source,build} respectively,
-	# but that creates a dependency on the 'kernel' package since those directories are
-	# not provided by kernel-devel. Both /source and /build in the mentioned directory
-	# just link to the sources directory in /usr/src however, which ddiskit defines
-	# as kmod_kernel_source.
-	KERNEL_SOURCES=%{kernel_source_dir}-$i
-	KERNEL_OUTPUT=%{kernel_source_dir}-$i
+# 	cp -r /usr/src/linux-$KD %{kernel_source_dir}-$i
+# 	# A proper kernel module build uses /lib/modules/KVER/{source,build} respectively,
+# 	# but that creates a dependency on the 'kernel' package since those directories are
+# 	# not provided by kernel-devel. Both /source and /build in the mentioned directory
+# 	# just link to the sources directory in /usr/src however, which ddiskit defines
+# 	# as kmod_kernel_source.
+# 	KERNEL_SOURCES=%{kernel_source_dir}-$i
+# 	KERNEL_OUTPUT=%{kernel_source_dir}-$i
 
-	# These could affect the linking so we unset them both there and in %%post
-	unset LD_RUN_PATH
-	unset LD_LIBRARY_PATH
+# 	# These could affect the linking so we unset them both there and in %%post
+# 	unset LD_RUN_PATH
+# 	unset LD_LIBRARY_PATH
 
-	#
-	# Compile kernel modules
-	#
-%if %{rc_openonly}
-	if ! echo $i |grep -q ^rc; then
-%endif
-		if echo $i |grep -q gcc; then
-			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} src=$(pwd) CC=gcc CXX=g++
-		else
-			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} src=$(pwd) IGNORE_CC_MISMATCH=1
-		fi
+# 	#
+# 	# Compile kernel modules
+# 	#
+# %if %{rc_openonly}
+# 	if ! echo $i |grep -q ^rc; then
+# %endif
+# 		if echo $i |grep -q gcc; then
+# 			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} src=$(pwd) CC=gcc CXX=g++
+# 		else
+# 			%{make_build} SYSSRC=${KERNEL_SOURCES} SYSOUT=${KERNEL_OUTPUT} src=$(pwd) IGNORE_CC_MISMATCH=1
+# 		fi
 
-		mkdir -p %{_builddir}/%{name}-%{version}/modules-$i
-		mv *.ko %{_builddir}/%{name}-%{version}/modules-$i
-%if %{rc_openonly}
-	fi
-%endif
+# 		mkdir -p %{_builddir}/%{name}-%{version}/modules-$i
+# 		mv *.ko %{_builddir}/%{name}-%{version}/modules-$i
+# %if %{rc_openonly}
+# 	fi
+# %endif
 
 	cd %{nvidia_driver_dir}/kernel-open
 	cp -r /usr/src/linux-$KD %{kernel_source_dir}-$i
@@ -740,15 +741,15 @@ mv *.dll %{buildroot}%{_prefix}/lib/wine/x86_64-windows/
 
 # Kernel modules
 for i in %{kernels}; do
-%if %{rc_openonly}
-	if ! echo $i |grep -q ^rc; then
-%endif
+# %if %{rc_openonly}
+# 	if ! echo $i |grep -q ^rc; then
+# %endif
 		KD=$(rpm -q --qf "%%{VERSION}-$i-%%{RELEASE}%%{DISTTAG}\n" kernel-${i}-devel |sort -V |tail -n1)
 		if echo $i |grep -q rc; then
 			KD=$(echo $KD |sed -e 's,rc-,,g')
 		fi
 		mkdir -p %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open
-		mv ../modules-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia/
+		# mv ../modules-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia/
 		mv ../modules-open-$i/*.ko %{buildroot}/lib/modules/$KD/kernel/drivers/video/nvidia-open/
 
 		# And create the package...
@@ -756,20 +757,20 @@ for i in %{kernels}; do
 		KV=$(rpm -q --qf "%%{VERSION}-%%{RELEASE}\n" kernel-${i}-devel |sort -V |tail -n1 |sed -e 's,-rc,,')
 
 		sed -e "s,@TYPE@,$i,g;s,@KV@,$KV,g;s,@KD@,$KD,g;s,@REL@,%{release}_$(echo $KV |sed -e 's,-,_,g'),g" %{S:2} >%{specpartsdir}/$i.specpart
-%if %{rc_openonly}
-	fi
-%endif
+# %if %{rc_openonly}
+# 	fi
+# %endif
 done
 
 # dkms-kmod
 # Create empty tree
-mkdir -p %{buildroot}%{_usrsrc}/%{dkms_name}-%{version}/
-cp -fr %{nvidia_driver_dir}/kernel/* %{buildroot}%{_usrsrc}/%{dkms_name}-%{version}/
+# mkdir -p %{buildroot}%{_usrsrc}/%{dkms_name}-%{version}/
+# cp -fr %{nvidia_driver_dir}/kernel/* %{buildroot}%{_usrsrc}/%{dkms_name}-%{version}/
 
-mkdir -p %{buildroot}%{_udevrulesdir}
-mkdir -p %{buildroot}%{_sysconfdir}/dracut.conf.d/
-mkdir -p %{buildroot}%{_unitdir}
-mkdir -p %{buildroot}%{_presetdir}
+# mkdir -p %{buildroot}%{_udevrulesdir}
+# mkdir -p %{buildroot}%{_sysconfdir}/dracut.conf.d/
+# mkdir -p %{buildroot}%{_unitdir}
+# mkdir -p %{buildroot}%{_presetdir}
 
 # UDev rules:
 # https://github.com/NVIDIA/nvidia-modprobe/blob/master/modprobe-utils/nvidia-modprobe-utils.h#L33-L46
@@ -861,15 +862,15 @@ fi
 %{_udevrulesdir}/60-nvidia.rules
 %{_prefix}/lib/firmware/nvidia/%{version}
 
-%post dkms-kmod
-dkms add -m %{dkms_name}-v %{version} || :
-# Rebuild and make available for the currently running kernel
-dkms build -m %{dkms_name} -v %{version} || :
-dkms install -m %{dkms_name} -v %{version} --force || :
+# %post dkms-kmod
+# dkms add -m %{dkms_name}-v %{version} || :
+# # Rebuild and make available for the currently running kernel
+# dkms build -m %{dkms_name} -v %{version} || :
+# dkms install -m %{dkms_name} -v %{version} --force || :
 
-%preun dkms-kmod
-# Remove all versions from DKMS registry
-dkms remove -m %{dkms_name} -v %{version} --all || :
+# %preun dkms-kmod
+# # Remove all versions from DKMS registry
+# dkms remove -m %{dkms_name} -v %{version} --all || :
 
 %post dkms-kmod-open
 dkms add -m %{open_dkms_name} -v %{version} -q || :
