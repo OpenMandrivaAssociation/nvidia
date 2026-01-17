@@ -1,6 +1,6 @@
 sources:
-  NVIDIA-Linux-aarch64-590.44.01.run: 7e58e9227298b6a216bce0d32cdbef1f63b9543c
-  NVIDIA-Linux-x86_64-590.44.01.run: 017f8e2b1a85fb1e2ce6263e2387b887c29a3cdc
-  nvidia-modprobe-590.44.01.tar.bz2: 32d912b64cc5db1c51657062354e7fbf5d0baf95
-  nvidia-persistenced-590.44.01.tar.bz2: 78e59e456f4cea25f4f8e75ea460543d2c41cedf
-  nvidia-settings-590.44.01.tar.bz2: 8c3476e3aaeee990b0fdd49c48761f977a4f1635
+  NVIDIA-Linux-aarch64-590.48.01.run: ee79a7ca7d5a638045e7a56338f07e0818096bb8
+  NVIDIA-Linux-x86_64-590.48.01.run: 19c0d472db0ab49d4438eb84b845f852846b6df0
+  nvidia-modprobe-590.48.01.tar.bz2: 772848e0c73f9a4674705ca85dac91bc915ebbe9
+  nvidia-persistenced-590.48.01.tar.bz2: e0860c5319655a7177f1953c743b0f9d77f81e38
+  nvidia-settings-590.48.01.tar.bz2: 387eb7812b6f40027eeddf133a8b2a4aea4faca3
