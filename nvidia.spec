@@ -734,9 +734,11 @@ cp %{nvidia_driver_dir}/NVIDIA_Changelog %{buildroot}%{_docdir}/%{name}
 cp %{nvidia_driver_dir}/README.txt %{buildroot}%{_docdir}/%{name}
 cp -r %{nvidia_driver_dir}/html %{buildroot}%{_docdir}/%{name}
 
+%ifarch %{x86_64}
 # wine
 mkdir -p %{buildroot}%{_prefix}/lib/wine/x86_64-windows
 mv *.dll %{buildroot}%{_prefix}/lib/wine/x86_64-windows/
+%endif
 
 # Kernel modules
 for i in %{kernels}; do
