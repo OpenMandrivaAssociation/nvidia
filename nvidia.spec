@@ -15,7 +15,7 @@
 %global rc_openonly 1
 
 Name:		nvidia
-Version:	590.48.01
+Version:	610.43.02
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -26,7 +26,7 @@ Version:	590.48.01
 %else
 %define ver %{version}
 %endif
-Release:	4
+Release:	1
 ExclusiveArch:	%{x86_64} %{aarch64}
 Summary:	Binary-only driver for NVIDIA graphics chips
 Url:		https://www.nvidia.com/object/unix.html
@@ -85,7 +85,7 @@ Requires:	(%{name}-wayland = %{EVRD} if %{mklibname wayland-egl})
 Requires:	(%{name}-x11 = %{EVRD} if xlibre-xorg)
 Requires:	%{name}-kmod-common = %{version}
 Requires:	%{name}-modprobe = %{EVRD}
-Suggests:	%{name}-settings = %{EVRD}
+Recommends:	%{name}-settings = %{EVRD}
 %(for i in %{kernels}; do
 	echo "Requires:	((%{name}-kmod-$i or %{name}-kmod-open-$i) if kernel-$i)"
 done)
@@ -1000,6 +1000,7 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_usrsrc}/%{open_dkms_name}-%{version}/conftest.sh
 %{_usrsrc}/%{open_dkms_name}-%{version}/dkms.conf
 %{_usrsrc}/%{open_dkms_name}-%{version}/*.mk
+%{_usrsrc}/%{open_dkms_name}-%{version}/pahole.sh
 
 %files kmod-open-source
 %{_usrsrc}/%{open_dkms_name}-%{version}/src
