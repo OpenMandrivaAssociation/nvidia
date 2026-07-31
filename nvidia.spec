@@ -6,6 +6,8 @@
 %global	open_dkms_name	nvidia-open
 %global	dkms_name	nvidia
 
+# OM includes the kernel modules in the kernel package, where they belong
+%bcond_with kernelmodules
 %global	kernels desktop server desktop-gcc server-gcc rc-desktop rc-server rc-desktop-gcc rc-server-gcc
 # When there is an RC kernel, add rc-desktop rc-server rc-desktop-gcc rc-server-gcc
 
@@ -15,7 +17,7 @@
 %global rc_openonly 1
 
 Name:		nvidia
-Version:	610.43.02
+Version:	610.43.03
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
@@ -86,9 +88,15 @@ Requires:	(%{name}-x11 = %{EVRD} if xlibre-xorg)
 Requires:	%{name}-kmod-common = %{version}
 Requires:	%{name}-modprobe = %{EVRD}
 Recommends:	%{name}-settings = %{EVRD}
+%if %{with kernelmodules}
 %(for i in %{kernels}; do
 	echo "Requires:	((%{name}-kmod-$i or %{name}-kmod-open-$i) if kernel-$i)"
 done)
+%else
+%(for i in %{kernels}; do
+	echo "Requires:	(kernel-$i-modules-nvidia if kernel-$i)"
+done)
+%endif
 
 %ifarch %{x86_64}
 Requires:	%{name}-32bit = %{version}
@@ -293,10 +301,12 @@ Provides:	%{name}-kmod-common = %{version}
 Requires:	%{name}-kmod = %{version}
 Requires:	%{name} = %{version}
 
+%if %{with kernelmodules}
 # Make sure depmod and dracut are run after all relevant modules are installed
 %(for i in %{kernels}; do
 	echo "Requires(post):	(%{name}-kmod-$i if kernel-$i)"
 done)
+%endif
 
 Obsoletes:	cuda-nvidia-kmod-common <= %{version}
 
@@ -444,6 +454,7 @@ sed -i -e 's|$(PREFIX)/lib|$(PREFIX)/%{_lib}|g' %{_builddir}/%{name}-%{version}/
 # reason, the kernel appends the LLD version to clang kernels while
 # nvidia does not.
 
+%if %{with kernelmodules}
 # kmod
 for i in %{kernels}; do
 	K=$(echo $i |sed -e 's,-,_,g')
@@ -516,6 +527,7 @@ for i in %{kernels}; do
 	mkdir -p %{_builddir}/%{name}-%{version}/modules-open-$i
 	mv *.ko %{_builddir}/%{name}-%{version}/modules-open-$i
 done
+%endif
 
 # persistenced
 cd %{_builddir}/%{name}-%{version}/nvidia-persistenced-%{helpers_version}
@@ -740,6 +752,7 @@ mkdir -p %{buildroot}%{_prefix}/lib/wine/x86_64-windows
 mv *.dll %{buildroot}%{_prefix}/lib/wine/x86_64-windows/
 %endif
 
+%if %{with kernelmodules}
 # Kernel modules
 for i in %{kernels}; do
 %if %{rc_openonly}
@@ -762,6 +775,7 @@ for i in %{kernels}; do
 	fi
 %endif
 done
+%endif
 
 # dkms-kmod
 # Create empty tree
