@@ -17,7 +17,7 @@
 %global rc_openonly 1
 
 Name:		nvidia
-Version:	610.57.04
+Version:	615.78.08
 # Sometimes helpers (persistenced, modprobe) don't change and aren't
 # retagged. When possible, helpers_version should be set to %{version}.
 %define helpers_version %{version}
