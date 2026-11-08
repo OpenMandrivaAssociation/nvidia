@@ -638,6 +638,12 @@ sl GLESv2_nvidia.so 2
 instx %{_libdir}/libnvidia-glsi.so.%{version}
 sl nvidia-glsi
 
+# aarch64-only. glcore, eglcore, glsi and nvidia_drv.so link it.
+%ifarch %{aarch64}
+instx %{_libdir}/libnvidia-rmapi-tegra.so.%{version}
+sl nvidia-rmapi-tegra
+%endif
+
 # CUDA
 instx %{_libdir}/libcuda.so.%{version}
 sl cuda 1
@@ -913,6 +919,9 @@ dkms remove -m %{open_dkms_name} -v %{version} -q --all || :
 %{_libdir}/libGLESv1_CM_nvidia.so*
 %{_libdir}/libGLESv2_nvidia.so*
 %{_libdir}/libnvidia-glsi.so*
+%ifarch %{aarch64}
+%{_libdir}/libnvidia-rmapi-tegra.so*
+%endif
 %{_libdir}/libGLX_indirect.so.0
 %{_libdir}/libnvidia-allocator.so*
 %{_libdir}/libnvidia-api.so*
