@@ -1,6 +1,6 @@
 sources:
-  NVIDIA-Linux-aarch64-615.78.08.run: 1e17a243d1e58d5d06dd9fde4cbe997eebe3e409
-  NVIDIA-Linux-x86_64-615.78.08.run: 9dc9bb1fa91aef91bd57bff808856fbb8a376514
-  nvidia-modprobe-615.78.08.tar.bz2: 799a6a5b01b976a70007cc7a311a6cfb69b70c44
-  nvidia-persistenced-615.78.08.tar.bz2: 5be6da48bdb52bf08fd9c49fb6c28973ecf96559
-  nvidia-settings-615.78.08.tar.bz2: ce136158892c72f4482cdc3b6f99f4aa5b538bb6
+  NVIDIA-Linux-aarch64-620.70.06.run: 3b79f970ceb0bf83afaf2c61afa7e750cbc44a48
+  NVIDIA-Linux-x86_64-620.70.06.run: 0a42ff4de78a5fdc21fd88395030b28ce12b5fb9
+  nvidia-modprobe-620.70.06.tar.bz2: c81c98f120f23c85c7ad9ce041c6fe1dde3d30a1
+  nvidia-persistenced-620.70.06.tar.bz2: ee4e582210d67c7a4722121d9d2fdebf8a2ed3c7
+  nvidia-settings-620.70.06.tar.bz2: ff47eeff3f889e6520ffcdd3ac2d4f2a17bcf419
